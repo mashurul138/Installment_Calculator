@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Installment & Scholarship Calculator</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <div class="container">
+      <h1>📚 Installment & Scholarship Calculator</h1>
+
+      <form id="calculatorForm">
+        <div class="form-group">
+          <label for="credit">Credit Hours</label>
+          <div class="input-group">
+            <input
+              type="number"
+              id="credit"
+              class="credit-input"
+              min="1"
+              step="1"
+              value="1"
+              required
+            />
+            <span class="input-suffix">credits</span>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="scl">Scholarship Percentage</label>
+          <div class="input-group">
+            <input
+              type="number"
+              id="scl"
+              class="percentage-input"
+              min="0"
+              max="100"
+              step="0.1"
+              value="1"
+              required
+            />
+            <span class="input-suffix">%</span>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="waiver">Waiver Percentage</label>
+          <div class="input-group">
+            <input
+              type="number"
+              id="waiver"
+              class="percentage-input"
+              min="0"
+              max="100"
+              step="0.1"
+              value="1"
+              required
+            />
+            <span class="input-suffix">%</span>
+          </div>
+        </div>
+
+        <button type="submit" class="btn">Calculate Installments</button>
+      </form>
+
+      <div class="results" id="results">
+        <div class="total-amount">
+          <div class="result-item">
+            <span class="result-label">💰 Total Pay Amount</span>
+            <span class="result-value" id="totalAmount">৳ 0</span>
+          </div>
+        </div>
+
+        <div class="installment-grid">
+          <div class="result-item">
+            <span class="result-label">1️⃣ First Installment (40%)</span>
+            <span class="result-value" id="firstInstallment">৳ 0</span>
+          </div>
+          <div class="result-item">
+            <span class="result-label">2️⃣ Second Installment (30%)</span>
+            <span class="result-value" id="secondInstallment">৳ 0</span>
+          </div>
+          <div class="result-item">
+            <span class="result-label">3️⃣ Third Installment (30%)</span>
+            <span class="result-value" id="thirdInstallment">৳ 0</span>
+          </div>
+        </div>
+
+        <div class="discount-info" id="discountInfo">
+          <span id="discountText">Best discount applied: 0%</span>
+        </div>
+      </div>
+    </div>
+
+    <script src="script.js"></script>
+  </body>
+</html>

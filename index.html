@@ -1,98 +1,207 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Installment & Scholarship Calculator</title>
-    <link rel="stylesheet" href="style.css" />
-  </head>
-  <body>
-    <div class="container">
-      <h1>📚 Installment & Scholarship Calculator</h1>
 
-      <form id="calculatorForm">
-        <div class="form-group">
-          <label for="credit">Credit Hours</label>
-          <div class="input-group">
-            <input
-              type="number"
-              id="credit"
-              class="credit-input"
-              min="1"
-              step="1"
-              value="1"
-              required
-            />
-            <span class="input-suffix">credits</span>
-          </div>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Installment & Scholarship Calculator</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Noto+Sans+Bengali:wght@400;500;600;700&display=swap"
+    rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+
+<body class="theme-light">
+  <div class="app-shell">
+    <header class="app-header card">
+      <button type="button" class="theme-toggle" id="themeToggle" aria-label="Switch to dark mode" aria-pressed="false">
+        <svg class="theme-toggle__icon theme-toggle__icon--sun" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+          aria-hidden="true">
+          <circle cx="12" cy="12" r="4"></circle>
+          <path
+            d="M12 2v2.5M12 19.5V22M4.93 4.93l1.77 1.77M17.3 17.3l1.77 1.77M2 12h2.5M19.5 12H22M4.93 19.07l1.77-1.77M17.3 6.7l1.77-1.77">
+          </path>
+        </svg>
+        <svg class="theme-toggle__icon theme-toggle__icon--moon" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+          aria-hidden="true">
+          <path d="M21 12.79A9 9 0 1 1 11.21 3c.09 0 .17 0 .26.01A7 7 0 0 0 21 12.79z"></path>
+        </svg>
+      </button>
+
+      <h1>Installment Calculator</h1>
+      <p>Fast fee planning with clear totals, discounts, and split payments.</p>
+    </header>
+
+    <div class="layout-grid">
+      <section class="form-panel card" aria-labelledby="inputSectionTitle">
+        <div class="panel-head">
+          <h2 class="section-title" id="inputSectionTitle">Course & Discount Inputs</h2>
+          <p class="rate-pill" id="perCreditRateText">Per-credit rate: &#2547; 5,525.00</p>
         </div>
 
-        <div class="form-group">
-          <label for="scl">Scholarship Percentage</label>
-          <div class="input-group">
-            <input
-              type="number"
-              id="scl"
-              class="percentage-input"
-              min="0"
-              max="100"
-              step="0.1"
-              value="1"
-              required
-            />
-            <span class="input-suffix">%</span>
+        <form id="calculatorForm" class="calc-form" novalidate>
+          <div class="input-grid">
+            <div class="field field--new">
+              <label for="newCredit" class="field__label">
+                <span class="field__labelMain">
+                  <span class="field__icon" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                      <path d="M4 6.5A2.5 2.5 0 0 1 6.5 4H20v16H6.5A2.5 2.5 0 0 0 4 22z" />
+                      <path d="M8 10h8M8 14h5" />
+                      <path d="M4 6.5V22" />
+                    </svg>
+                  </span>
+                  <span>New Credits</span>
+                </span>
+              </label>
+              <div class="field__inputWrap input-group">
+                <input type="number" id="newCredit" class="credit-input" inputmode="decimal" min="0" step="0.01"
+                  placeholder="0.00" />
+                <span class="input-suffix">credits</span>
+              </div>
+              <p class="error-text field__error" id="newCreditError"></p>
+            </div>
+
+            <div class="field field--retake-first">
+              <label for="retakeFirstCredit" class="field__label">
+                <span class="field__labelMain">
+                  <span class="field__icon" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                      <path d="M3 12a9 9 0 0 1 15.5-6.3" />
+                      <path d="M18 3v4h-4" />
+                      <path d="M21 12a9 9 0 0 1-15.5 6.3" />
+                      <path d="M6 21v-4h4" />
+                    </svg>
+                  </span>
+                  <span>Retake First-time</span>
+                </span>
+                <span class="field__hint">50% waiver</span>
+              </label>
+              <div class="field__inputWrap input-group">
+                <input type="number" id="retakeFirstCredit" class="credit-input" inputmode="decimal" min="0" step="0.01"
+                  placeholder="0.00" />
+                <span class="input-suffix">credits</span>
+              </div>
+              <p class="error-text field__error" id="retakeFirstCreditError"></p>
+            </div>
+
+            <div class="field field--retake-non-first">
+              <label for="retakeNonFirstCredit" class="field__label">
+                <span class="field__labelMain">
+                  <span class="field__icon" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                      <path d="M7 7h12v12" />
+                      <path d="M17 17H5V5" />
+                      <path d="M7 17 19 5" />
+                    </svg>
+                  </span>
+                  <span>Retake Not First-time</span>
+                </span>
+              </label>
+              <div class="field__inputWrap input-group">
+                <input type="number" id="retakeNonFirstCredit" class="credit-input" inputmode="decimal" min="0"
+                  step="0.01" placeholder="0.00" />
+                <span class="input-suffix">credits</span>
+              </div>
+              <p class="error-text field__error" id="retakeNonFirstCreditError"></p>
+            </div>
+
+            <div class="field field--scholarship">
+              <label for="scl" class="field__label">
+                <span class="field__labelMain">
+                  <span class="field__icon" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                      <circle cx="12" cy="8" r="4" />
+                      <path d="m9.5 12 1 8 1.5-2 1.5 2 1-8" />
+                    </svg>
+                  </span>
+                  <span>Scholarship %</span>
+                </span>
+              </label>
+              <div class="field__inputWrap input-group">
+                <input type="number" id="scl" class="percentage-input" inputmode="decimal" min="0" max="100" step="0.01"
+                  placeholder="0.00" />
+                <span class="input-suffix">%</span>
+              </div>
+              <p class="error-text field__error" id="sclError"></p>
+            </div>
+
+            <div class="field field--waiver">
+              <label for="waiver" class="field__label">
+                <span class="field__labelMain">
+                  <span class="field__icon" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                      <path d="M20 12 12 4 4 12l8 8 8-8z" />
+                      <path d="M12 8h.01" />
+                    </svg>
+                  </span>
+                  <span>Waiver %</span>
+                </span>
+              </label>
+              <div class="field__inputWrap input-group">
+                <input type="number" id="waiver" class="percentage-input" inputmode="decimal" min="0" max="100"
+                  step="0.01" placeholder="0.00" />
+                <span class="input-suffix">%</span>
+              </div>
+              <p class="error-text field__error" id="waiverError"></p>
+            </div>
+          </div>
+        </form>
+      </section>
+
+      <section class="result-panel card" aria-labelledby="summaryTitle">
+        <div class="results" id="results" aria-live="polite">
+          <div class="panel-head panel-head--summary">
+            <div class="card__titleRow">
+              <h2 class="section-title" id="summaryTitle">Payment Summary</h2>
+              <span class="badge badge--none" id="appliedDiscountBadge">Applied: None (0%)</span>
+            </div>
+            <p class="helper-text card__subtitle">Updates instantly as you type.</p>
+          </div>
+
+          <div class="summary-group">
+            <p class="summary-group__title">Totals</p>
+            <div class="summary-grid summary-grid--totals">
+              <div class="summary-row">
+                <span class="result-label label">Gross Total</span>
+                <span class="result-value value" id="grossTotal">&#2547; 0.00</span>
+              </div>
+              <div class="summary-row">
+                <span class="result-label label">Discount Amount</span>
+                <span class="result-value value" id="discountAmount">&#2547; 0.00</span>
+              </div>
+              <div class="summary-row summary-row--anchor">
+                <span class="result-label label">Net Total Payable</span>
+                <span class="result-value value" id="netTotalPayable">&#2547; 0.00</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="summary-group">
+            <p class="summary-group__title">Installments</p>
+            <div class="summary-grid">
+              <div class="summary-row">
+                <span class="result-label label">Installment 1 (40%)</span>
+                <span class="result-value value" id="firstInstallment">&#2547; 0.00</span>
+              </div>
+              <div class="summary-row">
+                <span class="result-label label">Installment 2 (30%)</span>
+                <span class="result-value value" id="secondInstallment">&#2547; 0.00</span>
+              </div>
+              <div class="summary-row">
+                <span class="result-label label">Installment 3 (30%)</span>
+                <span class="result-value value" id="thirdInstallment">&#2547; 0.00</span>
+              </div>
+            </div>
           </div>
         </div>
-
-        <div class="form-group">
-          <label for="waiver">Waiver Percentage</label>
-          <div class="input-group">
-            <input
-              type="number"
-              id="waiver"
-              class="percentage-input"
-              min="0"
-              max="100"
-              step="0.1"
-              value="1"
-              required
-            />
-            <span class="input-suffix">%</span>
-          </div>
-        </div>
-
-        <button type="submit" class="btn">Calculate Installments</button>
-      </form>
-
-      <div class="results" id="results">
-        <div class="total-amount">
-          <div class="result-item">
-            <span class="result-label">💰 Total Pay Amount</span>
-            <span class="result-value" id="totalAmount">৳ 0</span>
-          </div>
-        </div>
-
-        <div class="installment-grid">
-          <div class="result-item">
-            <span class="result-label">1️⃣ First Installment (40%)</span>
-            <span class="result-value" id="firstInstallment">৳ 0</span>
-          </div>
-          <div class="result-item">
-            <span class="result-label">2️⃣ Second Installment (30%)</span>
-            <span class="result-value" id="secondInstallment">৳ 0</span>
-          </div>
-          <div class="result-item">
-            <span class="result-label">3️⃣ Third Installment (30%)</span>
-            <span class="result-value" id="thirdInstallment">৳ 0</span>
-          </div>
-        </div>
-
-        <div class="discount-info" id="discountInfo">
-          <span id="discountText">Best discount applied: 0%</span>
-        </div>
-      </div>
+      </section>
     </div>
+  </div>
 
-    <script src="script.js"></script>
-  </body>
+  <script src="script.js"></script>
+</body>
+
 </html>

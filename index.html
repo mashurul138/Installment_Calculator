@@ -13,22 +13,34 @@
   <link rel="stylesheet" href="style.css" />
 </head>
 
-<body class="theme-light">
+<body class="theme-dark">
   <div class="app-shell">
     <header class="app-header card">
-      <button type="button" class="theme-toggle" id="themeToggle" aria-label="Switch to dark mode" aria-pressed="false">
-        <svg class="theme-toggle__icon theme-toggle__icon--sun" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-          aria-hidden="true">
-          <circle cx="12" cy="12" r="4"></circle>
-          <path
-            d="M12 2v2.5M12 19.5V22M4.93 4.93l1.77 1.77M17.3 17.3l1.77 1.77M2 12h2.5M19.5 12H22M4.93 19.07l1.77-1.77M17.3 6.7l1.77-1.77">
-          </path>
-        </svg>
-        <svg class="theme-toggle__icon theme-toggle__icon--moon" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-          aria-hidden="true">
-          <path d="M21 12.79A9 9 0 1 1 11.21 3c.09 0 .17 0 .26.01A7 7 0 0 0 21 12.79z"></path>
-        </svg>
-      </button>
+      <div class="header-actions">
+        <button type="button" class="icon-toggle settings-toggle" id="settingsToggle"
+          aria-label="Open calculator settings" aria-expanded="false">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true">
+            <path
+              d="M3 13.5v-3l2.1-.5a7 7 0 0 1 .5-1.2L4.4 7.1l2.1-2.1 1.7 1.2c.38-.2.78-.37 1.2-.5L10 3h3l.5 2.1c.42.13.82.3 1.2.5L16.4 4.4l2.1 2.1-1.2 1.7c.2.38.37.78.5 1.2L21 10v3l-2.1.5c-.13.42-.3.82-.5 1.2l1.2 1.7-2.1 2.1-1.7-1.2c-.38.2-.78.37-1.2.5L13 21h-3l-.5-2.1a7 7 0 0 1-1.2-.5l-1.7 1.2-2.1-2.1 1.2-1.7a7 7 0 0 1-.5-1.2L3 13.5Z" />
+            <circle cx="12" cy="12" r="3" />
+          </svg>
+        </button>
+
+        <button type="button" class="icon-toggle theme-toggle" id="themeToggle" aria-label="Switch to light mode"
+          aria-pressed="true">
+          <svg class="theme-toggle__icon theme-toggle__icon--sun" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+            aria-hidden="true">
+            <circle cx="12" cy="12" r="4"></circle>
+            <path
+              d="M12 2v2.5M12 19.5V22M4.93 4.93l1.77 1.77M17.3 17.3l1.77 1.77M2 12h2.5M19.5 12H22M4.93 19.07l1.77-1.77M17.3 6.7l1.77-1.77">
+            </path>
+          </svg>
+          <svg class="theme-toggle__icon theme-toggle__icon--moon" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+            aria-hidden="true">
+            <path d="M21 12.79A9 9 0 1 1 11.21 3c.09 0 .17 0 .26.01A7 7 0 0 0 21 12.79z"></path>
+          </svg>
+        </button>
+      </div>
 
       <h1>Installment Calculator</h1>
       <p>Fast fee planning with clear totals, discounts, and split payments.</p>
@@ -57,8 +69,8 @@
                 </span>
               </label>
               <div class="field__inputWrap input-group">
-                <input type="number" id="newCredit" class="credit-input" inputmode="decimal" min="0" step="0.01"
-                  placeholder="0.00" />
+                <input type="number" id="newCredit" class="credit-input" inputmode="decimal" min="0" step="0.1"
+                  placeholder="0.0" />
                 <span class="input-suffix">credits</span>
               </div>
               <p class="error-text field__error" id="newCreditError"></p>
@@ -77,11 +89,11 @@
                   </span>
                   <span>Retake First-time</span>
                 </span>
-                <span class="field__hint">50% waiver</span>
+                <span class="field__hint" id="retakeFirstHint">Payable rate: 50%</span>
               </label>
               <div class="field__inputWrap input-group">
-                <input type="number" id="retakeFirstCredit" class="credit-input" inputmode="decimal" min="0" step="0.01"
-                  placeholder="0.00" />
+                <input type="number" id="retakeFirstCredit" class="credit-input" inputmode="decimal" min="0" step="0.1"
+                  placeholder="0.0" />
                 <span class="input-suffix">credits</span>
               </div>
               <p class="error-text field__error" id="retakeFirstCreditError"></p>
@@ -99,10 +111,11 @@
                   </span>
                   <span>Retake Not First-time</span>
                 </span>
+                <span class="field__hint" id="retakeNonFirstHint">Payable rate: 100%</span>
               </label>
               <div class="field__inputWrap input-group">
                 <input type="number" id="retakeNonFirstCredit" class="credit-input" inputmode="decimal" min="0"
-                  step="0.01" placeholder="0.00" />
+                  step="0.1" placeholder="0.0" />
                 <span class="input-suffix">credits</span>
               </div>
               <p class="error-text field__error" id="retakeNonFirstCreditError"></p>
@@ -165,15 +178,23 @@
             <p class="summary-group__title">Totals</p>
             <div class="summary-grid summary-grid--totals">
               <div class="summary-row">
-                <span class="result-label label">Gross Total</span>
+                <span class="result-label label">Course Fee</span>
                 <span class="result-value value" id="grossTotal">&#2547; 0.00</span>
+              </div>
+              <div class="summary-row">
+                <span class="result-label label">Semester Fee</span>
+                <span class="result-value value" id="semesterFee">&#2547; 0.00</span>
+              </div>
+              <div class="summary-row">
+                <span class="result-label label">Total Amount</span>
+                <span class="result-value value" id="totalWithoutDiscount">&#2547; 0.00</span>
               </div>
               <div class="summary-row">
                 <span class="result-label label">Discount Amount</span>
                 <span class="result-value value" id="discountAmount">&#2547; 0.00</span>
               </div>
               <div class="summary-row summary-row--anchor">
-                <span class="result-label label">Net Total Payable</span>
+                <span class="result-label label">Net Payable</span>
                 <span class="result-value value" id="netTotalPayable">&#2547; 0.00</span>
               </div>
             </div>
@@ -181,24 +202,66 @@
 
           <div class="summary-group">
             <p class="summary-group__title">Installments</p>
-            <div class="summary-grid">
-              <div class="summary-row">
-                <span class="result-label label">Installment 1 (40%)</span>
-                <span class="result-value value" id="firstInstallment">&#2547; 0.00</span>
-              </div>
-              <div class="summary-row">
-                <span class="result-label label">Installment 2 (30%)</span>
-                <span class="result-value value" id="secondInstallment">&#2547; 0.00</span>
-              </div>
-              <div class="summary-row">
-                <span class="result-label label">Installment 3 (30%)</span>
-                <span class="result-value value" id="thirdInstallment">&#2547; 0.00</span>
-              </div>
+            <div class="summary-grid" id="installmentRows">
             </div>
           </div>
         </div>
       </section>
     </div>
+  </div>
+
+  <div class="settings-modal" id="settingsModal" hidden>
+    <div class="settings-modal__backdrop" id="settingsBackdrop"></div>
+    <section class="settings-panel card" role="dialog" aria-modal="true" aria-labelledby="settingsTitle">
+      <div class="settings-panel__head">
+        <h2 id="settingsTitle">Calculator Settings</h2>
+        <button type="button" class="settings-close" id="settingsClose" aria-label="Close settings">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true">
+            <path d="m6 6 12 12M18 6 6 18" />
+          </svg>
+        </button>
+      </div>
+
+      <form id="settingsForm" class="settings-form" novalidate>
+        <label class="settings-field" for="settingPerCreditFee">
+          <span>Per-credit rate (&#2547;)</span>
+          <input type="number" id="settingPerCreditFee" min="0" step="0.1" />
+        </label>
+
+        <label class="settings-field" for="settingSemesterFee">
+          <span>Semester fee (&#2547;)</span>
+          <input type="number" id="settingSemesterFee" min="0" step="0.1" />
+        </label>
+
+        <label class="settings-field" for="settingRetakeFirstRate">
+          <span>Retake first-time payable rate (%)</span>
+          <input type="number" id="settingRetakeFirstRate" min="0" max="100" step="0.1" />
+        </label>
+
+        <label class="settings-field" for="settingRetakeNonFirstRate">
+          <span>Retake not first-time payable rate (%)</span>
+          <input type="number" id="settingRetakeNonFirstRate" min="0" max="100" step="0.1" />
+        </label>
+
+        <label class="settings-field" for="settingInstallmentCount">
+          <span>Number of installments</span>
+          <input type="number" id="settingInstallmentCount" min="1" max="8" step="1" />
+        </label>
+
+        <div class="settings-field">
+          <span>Installment percentages (%)</span>
+          <div id="installmentPercentFields" class="settings-installments"></div>
+        </div>
+
+        <p class="settings-error" id="settingsError"></p>
+
+        <div class="settings-actions">
+          <button type="button" class="settings-btn settings-btn--ghost" id="settingsReset">Reset Defaults</button>
+          <button type="button" class="settings-btn settings-btn--ghost" id="settingsCancel">Cancel</button>
+          <button type="submit" class="settings-btn settings-btn--primary">Save</button>
+        </div>
+      </form>
+    </section>
   </div>
 
   <script src="script.js"></script>

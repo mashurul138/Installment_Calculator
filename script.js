@@ -3,6 +3,8 @@
   semesterFee: 6500,
   firstTimeRetakeRate: 0.5,
   nonFirstTimeRetakeRate: 1,
+  defaultScholarshipPercent: 0,
+  defaultWaiverPercent: 0,
   installmentRates: [0.4, 0.3, 0.3],
 });
 
@@ -44,6 +46,10 @@ const settingsInputs = {
   semesterFee: document.getElementById("settingSemesterFee"),
   firstTimeRetakeRate: document.getElementById("settingRetakeFirstRate"),
   nonFirstTimeRetakeRate: document.getElementById("settingRetakeNonFirstRate"),
+  defaultScholarshipPercent: document.getElementById(
+    "settingDefaultScholarship",
+  ),
+  defaultWaiverPercent: document.getElementById("settingDefaultWaiver"),
   installmentCount: document.getElementById("settingInstallmentCount"),
 };
 
@@ -94,6 +100,8 @@ function cloneSettings(settings) {
     semesterFee: settings.semesterFee,
     firstTimeRetakeRate: settings.firstTimeRetakeRate,
     nonFirstTimeRetakeRate: settings.nonFirstTimeRetakeRate,
+    defaultScholarshipPercent: settings.defaultScholarshipPercent,
+    defaultWaiverPercent: settings.defaultWaiverPercent,
     installmentRates: [...settings.installmentRates],
   };
 }
@@ -332,8 +340,16 @@ function readAndValidateInputs() {
   const newCredits = parseOrZero(fields.newCredit.value);
   const retakeFirstCredits = parseOrZero(fields.retakeFirstCredit.value);
   const retakeNonFirstCredits = parseOrZero(fields.retakeNonFirstCredit.value);
-  const scholarshipPercent = parseOrZero(fields.scl.value);
-  const waiverPercent = parseOrZero(fields.waiver.value);
+  const scholarshipRaw = fields.scl.value.trim();
+  const waiverRaw = fields.waiver.value.trim();
+  const scholarshipPercent =
+    scholarshipRaw === ""
+      ? calculatorSettings.defaultScholarshipPercent
+      : Number(scholarshipRaw);
+  const waiverPercent =
+    waiverRaw === ""
+      ? calculatorSettings.defaultWaiverPercent
+      : Number(waiverRaw);
 
   const isNewCreditsValid = validateCredit(newCredits, "newCredit");
   const isRetakeFirstCreditsValid = validateCredit(
@@ -438,6 +454,17 @@ function initializeStaticTexts() {
   resultFields.perCreditRateText.textContent = `Per-credit rate: ${formatBDT(calculatorSettings.perCreditFee)}`;
   retakeFirstHint.textContent = `Payable rate: ${formatPercent(calculatorSettings.firstTimeRetakeRate * 100)}%`;
   retakeNonFirstHint.textContent = `Payable rate: ${formatPercent(calculatorSettings.nonFirstTimeRetakeRate * 100)}%`;
+}
+
+function applyStoredDiscountDefaults(options = {}) {
+  const { clearValues = false } = options;
+  fields.scl.placeholder = `Default: ${formatPercent(calculatorSettings.defaultScholarshipPercent)}%`;
+  fields.waiver.placeholder = `Default: ${formatPercent(calculatorSettings.defaultWaiverPercent)}%`;
+
+  if (clearValues) {
+    fields.scl.value = "";
+    fields.waiver.value = "";
+  }
 }
 
 function applyTheme(theme) {
@@ -583,6 +610,12 @@ function populateSettingsForm(settings) {
   settingsInputs.nonFirstTimeRetakeRate.value = toInputString(
     settings.nonFirstTimeRetakeRate * 100,
   );
+  settingsInputs.defaultScholarshipPercent.value = toInputString(
+    settings.defaultScholarshipPercent,
+  );
+  settingsInputs.defaultWaiverPercent.value = toInputString(
+    settings.defaultWaiverPercent,
+  );
   settingsInputs.installmentCount.value = String(
     settings.installmentRates.length,
   );
@@ -618,6 +651,14 @@ function validateSettingsCandidate(candidate) {
   const semesterFee = Number(candidate.semesterFee);
   const firstTimeRetakeRate = Number(candidate.firstTimeRetakeRate);
   const nonFirstTimeRetakeRate = Number(candidate.nonFirstTimeRetakeRate);
+  const defaultScholarshipPercent =
+    candidate.defaultScholarshipPercent === undefined
+      ? 0
+      : Number(candidate.defaultScholarshipPercent);
+  const defaultWaiverPercent =
+    candidate.defaultWaiverPercent === undefined
+      ? 0
+      : Number(candidate.defaultWaiverPercent);
   const rawInstallmentRates = Array.isArray(candidate.installmentRates)
     ? candidate.installmentRates.map((value) => Number(value))
     : [];
@@ -633,6 +674,12 @@ function validateSettingsCandidate(candidate) {
     !Number.isFinite(nonFirstTimeRetakeRate) ||
     nonFirstTimeRetakeRate < 0 ||
     nonFirstTimeRetakeRate > 1 ||
+    !Number.isFinite(defaultScholarshipPercent) ||
+    defaultScholarshipPercent < 0 ||
+    defaultScholarshipPercent > 100 ||
+    !Number.isFinite(defaultWaiverPercent) ||
+    defaultWaiverPercent < 0 ||
+    defaultWaiverPercent > 100 ||
     rawInstallmentRates.length === 0 ||
     rawInstallmentRates.length > MAX_INSTALLMENTS
   ) {
@@ -658,6 +705,8 @@ function validateSettingsCandidate(candidate) {
     semesterFee: roundToTwo(semesterFee),
     firstTimeRetakeRate,
     nonFirstTimeRetakeRate,
+    defaultScholarshipPercent: roundToTwo(defaultScholarshipPercent),
+    defaultWaiverPercent: roundToTwo(defaultWaiverPercent),
     installmentRates: normalizedRates,
   };
 }
@@ -698,6 +747,7 @@ function applyCalculatorSettings(settings, options = {}) {
   }
 
   initializeStaticTexts();
+  applyStoredDiscountDefaults();
   calculateAndRender({ animate });
 }
 
@@ -709,6 +759,12 @@ function collectSettingsFromForm() {
   );
   const nonFirstTimeRetakePercent = Number(
     settingsInputs.nonFirstTimeRetakeRate.value,
+  );
+  const defaultScholarshipPercent = Number(
+    settingsInputs.defaultScholarshipPercent.value,
+  );
+  const defaultWaiverPercent = Number(
+    settingsInputs.defaultWaiverPercent.value,
   );
   const installmentCount = Number(settingsInputs.installmentCount.value);
   const installmentPercents = readInstallmentPercentInputs();
@@ -757,6 +813,22 @@ function collectSettingsFromForm() {
     };
   }
 
+  if (
+    !Number.isFinite(defaultScholarshipPercent) ||
+    defaultScholarshipPercent < 0 ||
+    defaultScholarshipPercent > 100
+  ) {
+    return { error: "Default scholarship must be between 0 and 100." };
+  }
+
+  if (
+    !Number.isFinite(defaultWaiverPercent) ||
+    defaultWaiverPercent < 0 ||
+    defaultWaiverPercent > 100
+  ) {
+    return { error: "Default waiver must be between 0 and 100." };
+  }
+
   const hasInvalidInstallment = installmentPercents.some(
     (value) => !Number.isFinite(value) || value < 0 || value > 100,
   );
@@ -779,6 +851,8 @@ function collectSettingsFromForm() {
     semesterFee,
     firstTimeRetakeRate: firstTimeRetakePercent / 100,
     nonFirstTimeRetakeRate: nonFirstTimeRetakePercent / 100,
+    defaultScholarshipPercent,
+    defaultWaiverPercent,
     installmentRates: normalizedInstallmentRates,
   });
 
@@ -871,5 +945,6 @@ form.addEventListener("submit", (event) => {
 
 initializeTheme();
 initializeStaticTexts();
+applyStoredDiscountDefaults({ clearValues: true });
 renderInstallmentRows([], true);
 calculateAndRender({ animate: false });

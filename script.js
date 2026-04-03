@@ -472,6 +472,12 @@ function applyTheme(theme) {
   document.body.classList.toggle("theme-dark", isDark);
   document.body.classList.toggle("theme-light", !isDark);
 
+  // Keep the browser chrome (address bar / status bar) in sync with the theme.
+  const themeColorMeta = document.getElementById("themeColorMeta");
+  if (themeColorMeta) {
+    themeColorMeta.content = isDark ? "#0f172b" : "#e9f0ff";
+  }
+
   if (themeToggle) {
     themeToggle.setAttribute("aria-pressed", String(isDark));
     themeToggle.setAttribute(

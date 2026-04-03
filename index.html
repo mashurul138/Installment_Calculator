@@ -1,280 +1,659 @@
-﻿<!DOCTYPE html>
+﻿<!doctype html>
 <html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Installment & Scholarship Calculator</title>
 
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Installment & Scholarship Calculator</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link
-    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Noto+Sans+Bengali:wght@400;500;600;700&display=swap"
-    rel="stylesheet" />
-  <link rel="stylesheet" href="style.css" />
-</head>
+        <!-- PWA & Offline -->
+        <link rel="manifest" href="./manifest.json" />
+        <meta name="theme-color" content="#0f172b" id="themeColorMeta" />
+        <meta name="mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-title" content="Installment Calc" />
+        <meta
+            name="apple-mobile-web-app-status-bar-style"
+            content="black-translucent"
+        />
+        <link rel="apple-touch-icon" href="./icon.svg" />
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+        <link
+            href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Noto+Sans+Bengali:wght@400;500;600;700&display=swap"
+            rel="stylesheet"
+        />
+        <link rel="stylesheet" href="style.css" />
+    </head>
 
-<body class="theme-dark">
-  <div class="app-shell">
-    <header class="app-header card">
-      <div class="header-actions">
-        <button type="button" class="icon-toggle settings-toggle" id="settingsToggle"
-          aria-label="Open calculator settings" aria-expanded="false">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true">
-            <path
-              d="M3 13.5v-3l2.1-.5a7 7 0 0 1 .5-1.2L4.4 7.1l2.1-2.1 1.7 1.2c.38-.2.78-.37 1.2-.5L10 3h3l.5 2.1c.42.13.82.3 1.2.5L16.4 4.4l2.1 2.1-1.2 1.7c.2.38.37.78.5 1.2L21 10v3l-2.1.5c-.13.42-.3.82-.5 1.2l1.2 1.7-2.1 2.1-1.7-1.2c-.38.2-.78.37-1.2.5L13 21h-3l-.5-2.1a7 7 0 0 1-1.2-.5l-1.7 1.2-2.1-2.1 1.2-1.7a7 7 0 0 1-.5-1.2L3 13.5Z" />
-            <circle cx="12" cy="12" r="3" />
-          </svg>
-        </button>
+    <body class="theme-dark">
+        <div class="app-shell">
+            <header class="app-header card">
+                <div class="header-actions">
+                    <button
+                        type="button"
+                        class="icon-toggle settings-toggle"
+                        id="settingsToggle"
+                        aria-label="Open calculator settings"
+                        aria-expanded="false"
+                    >
+                        <svg
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            aria-hidden="true"
+                        >
+                            <path
+                                d="M3 13.5v-3l2.1-.5a7 7 0 0 1 .5-1.2L4.4 7.1l2.1-2.1 1.7 1.2c.38-.2.78-.37 1.2-.5L10 3h3l.5 2.1c.42.13.82.3 1.2.5L16.4 4.4l2.1 2.1-1.2 1.7c.2.38.37.78.5 1.2L21 10v3l-2.1.5c-.13.42-.3.82-.5 1.2l1.2 1.7-2.1 2.1-1.7-1.2c-.38.2-.78.37-1.2.5L13 21h-3l-.5-2.1a7 7 0 0 1-1.2-.5l-1.7 1.2-2.1-2.1 1.2-1.7a7 7 0 0 1-.5-1.2L3 13.5Z"
+                            />
+                            <circle cx="12" cy="12" r="3" />
+                        </svg>
+                    </button>
 
-        <button type="button" class="icon-toggle theme-toggle" id="themeToggle" aria-label="Switch to light mode"
-          aria-pressed="true">
-          <svg class="theme-toggle__icon theme-toggle__icon--sun" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-            aria-hidden="true">
-            <circle cx="12" cy="12" r="4"></circle>
-            <path
-              d="M12 2v2.5M12 19.5V22M4.93 4.93l1.77 1.77M17.3 17.3l1.77 1.77M2 12h2.5M19.5 12H22M4.93 19.07l1.77-1.77M17.3 6.7l1.77-1.77">
-            </path>
-          </svg>
-          <svg class="theme-toggle__icon theme-toggle__icon--moon" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-            aria-hidden="true">
-            <path d="M21 12.79A9 9 0 1 1 11.21 3c.09 0 .17 0 .26.01A7 7 0 0 0 21 12.79z"></path>
-          </svg>
-        </button>
-      </div>
+                    <button
+                        type="button"
+                        class="icon-toggle theme-toggle"
+                        id="themeToggle"
+                        aria-label="Switch to light mode"
+                        aria-pressed="true"
+                    >
+                        <svg
+                            class="theme-toggle__icon theme-toggle__icon--sun"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            aria-hidden="true"
+                        >
+                            <circle cx="12" cy="12" r="4"></circle>
+                            <path
+                                d="M12 2v2.5M12 19.5V22M4.93 4.93l1.77 1.77M17.3 17.3l1.77 1.77M2 12h2.5M19.5 12H22M4.93 19.07l1.77-1.77M17.3 6.7l1.77-1.77"
+                            ></path>
+                        </svg>
+                        <svg
+                            class="theme-toggle__icon theme-toggle__icon--moon"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            aria-hidden="true"
+                        >
+                            <path
+                                d="M21 12.79A9 9 0 1 1 11.21 3c.09 0 .17 0 .26.01A7 7 0 0 0 21 12.79z"
+                            ></path>
+                        </svg>
+                    </button>
+                </div>
 
-      <h1>Installment Calculator</h1>
-      <p>Fast fee planning with clear totals, discounts, and split payments.</p>
-    </header>
+                <h1>Installment Calculator</h1>
+                <p>
+                    Fast fee planning with clear totals, discounts, and split
+                    payments.
+                </p>
+            </header>
 
-    <div class="layout-grid">
-      <section class="form-panel card" aria-labelledby="inputSectionTitle">
-        <div class="panel-head">
-          <h2 class="section-title" id="inputSectionTitle">Course & Discount Inputs</h2>
-          <p class="rate-pill" id="perCreditRateText">Per-credit rate: &#2547; 5,525.00</p>
+            <div class="layout-grid">
+                <section
+                    class="form-panel card"
+                    aria-labelledby="inputSectionTitle"
+                >
+                    <div class="panel-head">
+                        <h2 class="section-title" id="inputSectionTitle">
+                            Course & Discount Inputs
+                        </h2>
+                        <p class="rate-pill" id="perCreditRateText">
+                            Per-credit rate: &#2547; 5,525.00
+                        </p>
+                    </div>
+
+                    <form id="calculatorForm" class="calc-form" novalidate>
+                        <div class="input-grid">
+                            <div class="field field--new">
+                                <label for="newCredit" class="field__label">
+                                    <span class="field__labelMain">
+                                        <span
+                                            class="field__icon"
+                                            aria-hidden="true"
+                                        >
+                                            <svg
+                                                viewBox="0 0 24 24"
+                                                fill="none"
+                                                stroke="currentColor"
+                                            >
+                                                <path
+                                                    d="M4 6.5A2.5 2.5 0 0 1 6.5 4H20v16H6.5A2.5 2.5 0 0 0 4 22z"
+                                                />
+                                                <path d="M8 10h8M8 14h5" />
+                                                <path d="M4 6.5V22" />
+                                            </svg>
+                                        </span>
+                                        <span>New Credits</span>
+                                    </span>
+                                </label>
+                                <div class="field__inputWrap input-group">
+                                    <input
+                                        type="number"
+                                        id="newCredit"
+                                        class="credit-input"
+                                        inputmode="decimal"
+                                        min="0"
+                                        step="0.1"
+                                        placeholder="0.0"
+                                    />
+                                    <span class="input-suffix">credits</span>
+                                </div>
+                                <p
+                                    class="error-text field__error"
+                                    id="newCreditError"
+                                ></p>
+                            </div>
+
+                            <div class="field field--retake-first">
+                                <label
+                                    for="retakeFirstCredit"
+                                    class="field__label"
+                                >
+                                    <span class="field__labelMain">
+                                        <span
+                                            class="field__icon"
+                                            aria-hidden="true"
+                                        >
+                                            <svg
+                                                viewBox="0 0 24 24"
+                                                fill="none"
+                                                stroke="currentColor"
+                                            >
+                                                <path
+                                                    d="M3 12a9 9 0 0 1 15.5-6.3"
+                                                />
+                                                <path d="M18 3v4h-4" />
+                                                <path
+                                                    d="M21 12a9 9 0 0 1-15.5 6.3"
+                                                />
+                                                <path d="M6 21v-4h4" />
+                                            </svg>
+                                        </span>
+                                        <span>Retake First-time</span>
+                                    </span>
+                                    <span
+                                        class="field__hint"
+                                        id="retakeFirstHint"
+                                        >Payable rate: 50%</span
+                                    >
+                                </label>
+                                <div class="field__inputWrap input-group">
+                                    <input
+                                        type="number"
+                                        id="retakeFirstCredit"
+                                        class="credit-input"
+                                        inputmode="decimal"
+                                        min="0"
+                                        step="0.1"
+                                        placeholder="0.0"
+                                    />
+                                    <span class="input-suffix">credits</span>
+                                </div>
+                                <p
+                                    class="error-text field__error"
+                                    id="retakeFirstCreditError"
+                                ></p>
+                            </div>
+
+                            <div class="field field--retake-non-first">
+                                <label
+                                    for="retakeNonFirstCredit"
+                                    class="field__label"
+                                >
+                                    <span class="field__labelMain">
+                                        <span
+                                            class="field__icon"
+                                            aria-hidden="true"
+                                        >
+                                            <svg
+                                                viewBox="0 0 24 24"
+                                                fill="none"
+                                                stroke="currentColor"
+                                            >
+                                                <path d="M7 7h12v12" />
+                                                <path d="M17 17H5V5" />
+                                                <path d="M7 17 19 5" />
+                                            </svg>
+                                        </span>
+                                        <span>Retake Not First-time</span>
+                                    </span>
+                                    <span
+                                        class="field__hint"
+                                        id="retakeNonFirstHint"
+                                        >Payable rate: 100%</span
+                                    >
+                                </label>
+                                <div class="field__inputWrap input-group">
+                                    <input
+                                        type="number"
+                                        id="retakeNonFirstCredit"
+                                        class="credit-input"
+                                        inputmode="decimal"
+                                        min="0"
+                                        step="0.1"
+                                        placeholder="0.0"
+                                    />
+                                    <span class="input-suffix">credits</span>
+                                </div>
+                                <p
+                                    class="error-text field__error"
+                                    id="retakeNonFirstCreditError"
+                                ></p>
+                            </div>
+
+                            <div class="field field--scholarship">
+                                <label for="scl" class="field__label">
+                                    <span class="field__labelMain">
+                                        <span
+                                            class="field__icon"
+                                            aria-hidden="true"
+                                        >
+                                            <svg
+                                                viewBox="0 0 24 24"
+                                                fill="none"
+                                                stroke="currentColor"
+                                            >
+                                                <circle cx="12" cy="8" r="4" />
+                                                <path
+                                                    d="m9.5 12 1 8 1.5-2 1.5 2 1-8"
+                                                />
+                                            </svg>
+                                        </span>
+                                        <span>Scholarship %</span>
+                                    </span>
+                                </label>
+                                <div class="field__inputWrap input-group">
+                                    <input
+                                        type="number"
+                                        id="scl"
+                                        class="percentage-input"
+                                        inputmode="decimal"
+                                        min="0"
+                                        max="100"
+                                        step="0.01"
+                                        placeholder="0.00"
+                                    />
+                                    <span class="input-suffix">%</span>
+                                </div>
+                                <p
+                                    class="error-text field__error"
+                                    id="sclError"
+                                ></p>
+                            </div>
+
+                            <div class="field field--waiver">
+                                <label for="waiver" class="field__label">
+                                    <span class="field__labelMain">
+                                        <span
+                                            class="field__icon"
+                                            aria-hidden="true"
+                                        >
+                                            <svg
+                                                viewBox="0 0 24 24"
+                                                fill="none"
+                                                stroke="currentColor"
+                                            >
+                                                <path
+                                                    d="M20 12 12 4 4 12l8 8 8-8z"
+                                                />
+                                                <path d="M12 8h.01" />
+                                            </svg>
+                                        </span>
+                                        <span>Waiver %</span>
+                                    </span>
+                                </label>
+                                <div class="field__inputWrap input-group">
+                                    <input
+                                        type="number"
+                                        id="waiver"
+                                        class="percentage-input"
+                                        inputmode="decimal"
+                                        min="0"
+                                        max="100"
+                                        step="0.01"
+                                        placeholder="0.00"
+                                    />
+                                    <span class="input-suffix">%</span>
+                                </div>
+                                <p
+                                    class="error-text field__error"
+                                    id="waiverError"
+                                ></p>
+                            </div>
+                        </div>
+                    </form>
+                </section>
+
+                <section
+                    class="result-panel card"
+                    aria-labelledby="summaryTitle"
+                >
+                    <div class="results" id="results" aria-live="polite">
+                        <div class="panel-head panel-head--summary">
+                            <div class="card__titleRow">
+                                <h2 class="section-title" id="summaryTitle">
+                                    Payment Summary
+                                </h2>
+                                <span
+                                    class="badge badge--none"
+                                    id="appliedDiscountBadge"
+                                    >Applied: None (0%)</span
+                                >
+                            </div>
+                            <p class="helper-text card__subtitle">
+                                Updates instantly as you type.
+                            </p>
+                        </div>
+
+                        <div class="summary-group">
+                            <p class="summary-group__title">Totals</p>
+                            <div class="summary-grid summary-grid--totals">
+                                <div class="summary-row">
+                                    <span class="result-label label"
+                                        >Course Fee</span
+                                    >
+                                    <span
+                                        class="result-value value"
+                                        id="grossTotal"
+                                        >&#2547; 0.00</span
+                                    >
+                                </div>
+                                <div class="summary-row">
+                                    <span class="result-label label"
+                                        >Semester Fee</span
+                                    >
+                                    <span
+                                        class="result-value value"
+                                        id="semesterFee"
+                                        >&#2547; 0.00</span
+                                    >
+                                </div>
+                                <div class="summary-row">
+                                    <span class="result-label label"
+                                        >Total Amount</span
+                                    >
+                                    <span
+                                        class="result-value value"
+                                        id="totalWithoutDiscount"
+                                        >&#2547; 0.00</span
+                                    >
+                                </div>
+                                <div class="summary-row">
+                                    <span class="result-label label"
+                                        >Discount Amount</span
+                                    >
+                                    <span
+                                        class="result-value value"
+                                        id="discountAmount"
+                                        >&#2547; 0.00</span
+                                    >
+                                </div>
+                                <div class="summary-row summary-row--anchor">
+                                    <span class="result-label label"
+                                        >Net Payable</span
+                                    >
+                                    <span
+                                        class="result-value value"
+                                        id="netTotalPayable"
+                                        >&#2547; 0.00</span
+                                    >
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="summary-group">
+                            <p class="summary-group__title">Installments</p>
+                            <div
+                                class="summary-grid"
+                                id="installmentRows"
+                            ></div>
+                        </div>
+                    </div>
+                </section>
+            </div>
         </div>
 
-        <form id="calculatorForm" class="calc-form" novalidate>
-          <div class="input-grid">
-            <div class="field field--new">
-              <label for="newCredit" class="field__label">
-                <span class="field__labelMain">
-                  <span class="field__icon" aria-hidden="true">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                      <path d="M4 6.5A2.5 2.5 0 0 1 6.5 4H20v16H6.5A2.5 2.5 0 0 0 4 22z" />
-                      <path d="M8 10h8M8 14h5" />
-                      <path d="M4 6.5V22" />
-                    </svg>
-                  </span>
-                  <span>New Credits</span>
-                </span>
-              </label>
-              <div class="field__inputWrap input-group">
-                <input type="number" id="newCredit" class="credit-input" inputmode="decimal" min="0" step="0.1"
-                  placeholder="0.0" />
-                <span class="input-suffix">credits</span>
-              </div>
-              <p class="error-text field__error" id="newCreditError"></p>
-            </div>
+        <div class="settings-modal" id="settingsModal" hidden>
+            <div class="settings-modal__backdrop" id="settingsBackdrop"></div>
+            <section
+                class="settings-panel card"
+                role="dialog"
+                aria-modal="true"
+                aria-labelledby="settingsTitle"
+            >
+                <div class="settings-panel__head">
+                    <h2 id="settingsTitle">Calculator Settings</h2>
+                    <button
+                        type="button"
+                        class="settings-close"
+                        id="settingsClose"
+                        aria-label="Close settings"
+                    >
+                        <svg
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            aria-hidden="true"
+                        >
+                            <path d="m6 6 12 12M18 6 6 18" />
+                        </svg>
+                    </button>
+                </div>
 
-            <div class="field field--retake-first">
-              <label for="retakeFirstCredit" class="field__label">
-                <span class="field__labelMain">
-                  <span class="field__icon" aria-hidden="true">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                      <path d="M3 12a9 9 0 0 1 15.5-6.3" />
-                      <path d="M18 3v4h-4" />
-                      <path d="M21 12a9 9 0 0 1-15.5 6.3" />
-                      <path d="M6 21v-4h4" />
-                    </svg>
-                  </span>
-                  <span>Retake First-time</span>
-                </span>
-                <span class="field__hint" id="retakeFirstHint">Payable rate: 50%</span>
-              </label>
-              <div class="field__inputWrap input-group">
-                <input type="number" id="retakeFirstCredit" class="credit-input" inputmode="decimal" min="0" step="0.1"
-                  placeholder="0.0" />
-                <span class="input-suffix">credits</span>
-              </div>
-              <p class="error-text field__error" id="retakeFirstCreditError"></p>
-            </div>
+                <form id="settingsForm" class="settings-form" novalidate>
+                    <label class="settings-field" for="settingPerCreditFee">
+                        <span>Per-credit rate (&#2547;)</span>
+                        <input
+                            type="number"
+                            id="settingPerCreditFee"
+                            min="0"
+                            step="0.1"
+                        />
+                    </label>
 
-            <div class="field field--retake-non-first">
-              <label for="retakeNonFirstCredit" class="field__label">
-                <span class="field__labelMain">
-                  <span class="field__icon" aria-hidden="true">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                      <path d="M7 7h12v12" />
-                      <path d="M17 17H5V5" />
-                      <path d="M7 17 19 5" />
-                    </svg>
-                  </span>
-                  <span>Retake Not First-time</span>
-                </span>
-                <span class="field__hint" id="retakeNonFirstHint">Payable rate: 100%</span>
-              </label>
-              <div class="field__inputWrap input-group">
-                <input type="number" id="retakeNonFirstCredit" class="credit-input" inputmode="decimal" min="0"
-                  step="0.1" placeholder="0.0" />
-                <span class="input-suffix">credits</span>
-              </div>
-              <p class="error-text field__error" id="retakeNonFirstCreditError"></p>
-            </div>
+                    <label class="settings-field" for="settingSemesterFee">
+                        <span>Semester fee (&#2547;)</span>
+                        <input
+                            type="number"
+                            id="settingSemesterFee"
+                            min="0"
+                            step="0.1"
+                        />
+                    </label>
 
-            <div class="field field--scholarship">
-              <label for="scl" class="field__label">
-                <span class="field__labelMain">
-                  <span class="field__icon" aria-hidden="true">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                      <circle cx="12" cy="8" r="4" />
-                      <path d="m9.5 12 1 8 1.5-2 1.5 2 1-8" />
-                    </svg>
-                  </span>
-                  <span>Scholarship %</span>
-                </span>
-              </label>
-              <div class="field__inputWrap input-group">
-                <input type="number" id="scl" class="percentage-input" inputmode="decimal" min="0" max="100" step="0.01"
-                  placeholder="0.00" />
-                <span class="input-suffix">%</span>
-              </div>
-              <p class="error-text field__error" id="sclError"></p>
-            </div>
+                    <label class="settings-field" for="settingRetakeFirstRate">
+                        <span>Retake first-time payable rate (%)</span>
+                        <input
+                            type="number"
+                            id="settingRetakeFirstRate"
+                            min="0"
+                            max="100"
+                            step="0.1"
+                        />
+                    </label>
 
-            <div class="field field--waiver">
-              <label for="waiver" class="field__label">
-                <span class="field__labelMain">
-                  <span class="field__icon" aria-hidden="true">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                      <path d="M20 12 12 4 4 12l8 8 8-8z" />
-                      <path d="M12 8h.01" />
-                    </svg>
-                  </span>
-                  <span>Waiver %</span>
-                </span>
-              </label>
-              <div class="field__inputWrap input-group">
-                <input type="number" id="waiver" class="percentage-input" inputmode="decimal" min="0" max="100"
-                  step="0.01" placeholder="0.00" />
-                <span class="input-suffix">%</span>
-              </div>
-              <p class="error-text field__error" id="waiverError"></p>
-            </div>
-          </div>
-        </form>
-      </section>
+                    <label
+                        class="settings-field"
+                        for="settingRetakeNonFirstRate"
+                    >
+                        <span>Retake not first-time payable rate (%)</span>
+                        <input
+                            type="number"
+                            id="settingRetakeNonFirstRate"
+                            min="0"
+                            max="100"
+                            step="0.1"
+                        />
+                    </label>
 
-      <section class="result-panel card" aria-labelledby="summaryTitle">
-        <div class="results" id="results" aria-live="polite">
-          <div class="panel-head panel-head--summary">
-            <div class="card__titleRow">
-              <h2 class="section-title" id="summaryTitle">Payment Summary</h2>
-              <span class="badge badge--none" id="appliedDiscountBadge">Applied: None (0%)</span>
-            </div>
-            <p class="helper-text card__subtitle">Updates instantly as you type.</p>
-          </div>
+                    <label
+                        class="settings-field"
+                        for="settingDefaultScholarship"
+                    >
+                        <span>Default scholarship (%)</span>
+                        <input
+                            type="number"
+                            id="settingDefaultScholarship"
+                            min="0"
+                            max="100"
+                            step="0.01"
+                        />
+                    </label>
 
-          <div class="summary-group">
-            <p class="summary-group__title">Totals</p>
-            <div class="summary-grid summary-grid--totals">
-              <div class="summary-row">
-                <span class="result-label label">Course Fee</span>
-                <span class="result-value value" id="grossTotal">&#2547; 0.00</span>
-              </div>
-              <div class="summary-row">
-                <span class="result-label label">Semester Fee</span>
-                <span class="result-value value" id="semesterFee">&#2547; 0.00</span>
-              </div>
-              <div class="summary-row">
-                <span class="result-label label">Total Amount</span>
-                <span class="result-value value" id="totalWithoutDiscount">&#2547; 0.00</span>
-              </div>
-              <div class="summary-row">
-                <span class="result-label label">Discount Amount</span>
-                <span class="result-value value" id="discountAmount">&#2547; 0.00</span>
-              </div>
-              <div class="summary-row summary-row--anchor">
-                <span class="result-label label">Net Payable</span>
-                <span class="result-value value" id="netTotalPayable">&#2547; 0.00</span>
-              </div>
-            </div>
-          </div>
+                    <label class="settings-field" for="settingDefaultWaiver">
+                        <span>Default waiver (%)</span>
+                        <input
+                            type="number"
+                            id="settingDefaultWaiver"
+                            min="0"
+                            max="100"
+                            step="0.01"
+                        />
+                    </label>
 
-          <div class="summary-group">
-            <p class="summary-group__title">Installments</p>
-            <div class="summary-grid" id="installmentRows">
-            </div>
-          </div>
-        </div>
-      </section>
-    </div>
-  </div>
+                    <label class="settings-field" for="settingInstallmentCount">
+                        <span>Number of installments</span>
+                        <input
+                            type="number"
+                            id="settingInstallmentCount"
+                            min="1"
+                            max="8"
+                            step="1"
+                        />
+                    </label>
 
-  <div class="settings-modal" id="settingsModal" hidden>
-    <div class="settings-modal__backdrop" id="settingsBackdrop"></div>
-    <section class="settings-panel card" role="dialog" aria-modal="true" aria-labelledby="settingsTitle">
-      <div class="settings-panel__head">
-        <h2 id="settingsTitle">Calculator Settings</h2>
-        <button type="button" class="settings-close" id="settingsClose" aria-label="Close settings">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true">
-            <path d="m6 6 12 12M18 6 6 18" />
-          </svg>
-        </button>
-      </div>
+                    <div class="settings-field">
+                        <span>Installment percentages (%)</span>
+                        <div
+                            id="installmentPercentFields"
+                            class="settings-installments"
+                        ></div>
+                    </div>
 
-      <form id="settingsForm" class="settings-form" novalidate>
-        <label class="settings-field" for="settingPerCreditFee">
-          <span>Per-credit rate (&#2547;)</span>
-          <input type="number" id="settingPerCreditFee" min="0" step="0.1" />
-        </label>
+                    <p class="settings-error" id="settingsError"></p>
 
-        <label class="settings-field" for="settingSemesterFee">
-          <span>Semester fee (&#2547;)</span>
-          <input type="number" id="settingSemesterFee" min="0" step="0.1" />
-        </label>
-
-        <label class="settings-field" for="settingRetakeFirstRate">
-          <span>Retake first-time payable rate (%)</span>
-          <input type="number" id="settingRetakeFirstRate" min="0" max="100" step="0.1" />
-        </label>
-
-        <label class="settings-field" for="settingRetakeNonFirstRate">
-          <span>Retake not first-time payable rate (%)</span>
-          <input type="number" id="settingRetakeNonFirstRate" min="0" max="100" step="0.1" />
-        </label>
-
-        <label class="settings-field" for="settingDefaultScholarship">
-          <span>Default scholarship (%)</span>
-          <input type="number" id="settingDefaultScholarship" min="0" max="100" step="0.01" />
-        </label>
-
-        <label class="settings-field" for="settingDefaultWaiver">
-          <span>Default waiver (%)</span>
-          <input type="number" id="settingDefaultWaiver" min="0" max="100" step="0.01" />
-        </label>
-
-        <label class="settings-field" for="settingInstallmentCount">
-          <span>Number of installments</span>
-          <input type="number" id="settingInstallmentCount" min="1" max="8" step="1" />
-        </label>
-
-        <div class="settings-field">
-          <span>Installment percentages (%)</span>
-          <div id="installmentPercentFields" class="settings-installments"></div>
+                    <div class="settings-actions">
+                        <button
+                            type="button"
+                            class="settings-btn settings-btn--ghost"
+                            id="settingsReset"
+                        >
+                            Reset Defaults
+                        </button>
+                        <button
+                            type="button"
+                            class="settings-btn settings-btn--ghost"
+                            id="settingsCancel"
+                        >
+                            Cancel
+                        </button>
+                        <button
+                            type="submit"
+                            class="settings-btn settings-btn--primary"
+                        >
+                            Save
+                        </button>
+                    </div>
+                </form>
+            </section>
         </div>
 
-        <p class="settings-error" id="settingsError"></p>
+        <script src="script.js"></script>
 
-        <div class="settings-actions">
-          <button type="button" class="settings-btn settings-btn--ghost" id="settingsReset">Reset Defaults</button>
-          <button type="button" class="settings-btn settings-btn--ghost" id="settingsCancel">Cancel</button>
-          <button type="submit" class="settings-btn settings-btn--primary">Save</button>
+        <!-- Update notification toast — shown when a new SW version takes control -->
+        <div
+            id="updateToast"
+            class="update-toast"
+            role="status"
+            aria-live="polite"
+            hidden
+        >
+            <svg
+                class="update-toast__icon"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                aria-hidden="true"
+            >
+                <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+                />
+            </svg>
+            <span class="update-toast__msg"
+                >App updated — reload for the latest version.</span
+            >
+            <button type="button" class="update-toast__btn" id="toastReload">
+                Reload
+            </button>
+            <button
+                type="button"
+                class="update-toast__dismiss"
+                id="toastDismiss"
+                aria-label="Dismiss notification"
+            >
+                <svg
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    aria-hidden="true"
+                >
+                    <path
+                        stroke-linecap="round"
+                        stroke-width="2"
+                        d="M6 18L18 6M6 6l12 12"
+                    />
+                </svg>
+            </button>
         </div>
-      </form>
-    </section>
-  </div>
 
-  <script src="script.js"></script>
-</body>
+        <!-- Service Worker Registration -->
+        <script>
+            (function () {
+                if (!("serviceWorker" in navigator)) return;
 
+                const toast = document.getElementById("updateToast");
+                const reloadBtn = document.getElementById("toastReload");
+                const dismissBtn = document.getElementById("toastDismiss");
+
+                function showUpdateToast() {
+                    if (toast) toast.hidden = false;
+                }
+
+                if (reloadBtn)
+                    reloadBtn.addEventListener("click", () =>
+                        window.location.reload(),
+                    );
+                if (dismissBtn)
+                    dismissBtn.addEventListener("click", () => {
+                        if (toast) toast.hidden = true;
+                    });
+
+                // `hadController` is true when a SW was already controlling this page on
+                // load.  A later `controllerchange` event means a new SW took over (i.e.
+                // an update was applied) — that's when we show the toast.
+                let hadController = Boolean(navigator.serviceWorker.controller);
+
+                navigator.serviceWorker.addEventListener(
+                    "controllerchange",
+                    () => {
+                        if (hadController) showUpdateToast();
+                        hadController = true;
+                    },
+                );
+
+                navigator.serviceWorker
+                    .register("./sw.js")
+                    .then((reg) =>
+                        console.log("[SW] Registered. Scope:", reg.scope),
+                    )
+                    .catch((err) =>
+                        console.warn("[SW] Registration failed:", err),
+                    );
+            })();
+        </script>
+    </body>
 </html>

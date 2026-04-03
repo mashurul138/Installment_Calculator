@@ -1,0 +1,21 @@
+{
+  "name": "Installment & Scholarship Calculator",
+  "short_name": "Installment Calc",
+  "description": "Fast fee planning with clear totals, discounts, and split payments. Works fully offline.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#0f172b",
+  "theme_color": "#3d6af2",
+  "lang": "en",
+  "categories": ["finance", "utilities"],
+  "icons": [
+    {
+      "src": "./icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ]
+}

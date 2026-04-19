@@ -410,7 +410,8 @@ function renderCalculatedResults(values, animate = true) {
     waiverPercent,
   );
 
-  const discountAmount = grossTotal * (appliedPercent / 100);
+  // Scholarship/waiver applies only to fresh new-course fees, never retakes.
+  const discountAmount = newCourseFee * (appliedPercent / 100);
   const netTotalPayable = totalWithoutDiscount - discountAmount;
   const installments = splitInstallmentAmounts(
     netTotalPayable,

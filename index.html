@@ -32,6 +32,27 @@
                     <button
                         type="button"
                         class="icon-toggle"
+                        id="headerManualBtn"
+                        aria-label="User Manual & Policy Guide"
+                        title="User Manual & Policy Guide (All Scenarios Explained)"
+                    >
+                        <svg
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            stroke-width="2"
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            aria-hidden="true"
+                        >
+                            <path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1-2.5-2.5Z"/>
+                            <path d="M6 6h10M6 10h10M6 14h6"/>
+                        </svg>
+                    </button>
+
+                    <button
+                        type="button"
+                        class="icon-toggle"
                         id="headerResetBtn"
                         aria-label="Reset all inputs"
                         title="Reset form to defaults"
@@ -244,7 +265,7 @@
                                         <div class="field-preset-chips" data-for="newCredit">
                                             <button type="button" class="chip-sm" data-preset-val="9">9 cr</button>
                                             <button type="button" class="chip-sm" data-preset-val="12">12 cr</button>
-                                            <button type="button" class="chip-sm" data-preset-val="13.5">13.5 cr</button>
+                                            <button type="button" class="chip-sm" data-preset-val="13">13 cr</button>
                                             <button type="button" class="chip-sm" data-preset-val="15">15 cr</button>
                                         </div>
                                     </div>
@@ -700,7 +721,7 @@
                             </div>
 
                             <div class="extras-checklist">
-                                <p class="checklist-title">Campus Services & Fines (UIU Fall 2026)</p>
+                                <p class="checklist-title" id="campusServicesTitle">Campus Services &amp; Fines (UIU Fall 2026)</p>
                                 <div class="checkbox-grid">
                                     <label class="custom-check" for="extraTransport">
                                         <input type="checkbox" id="extraTransport" />
@@ -755,13 +776,7 @@
 
                         <!-- Course Drop & Refund Calculator Tool -->
                         <div class="drop-tool" id="dropToolContainer">
-                            <button
-                                type="button"
-                                class="drop-tool__head"
-                                id="dropToolToggle"
-                                aria-expanded="false"
-                                aria-controls="dropToolBody"
-                            >
+                            <div class="drop-tool__head">
                                 <div class="drop-tool__titleGroup">
                                     <span class="drop-tool__icon" aria-hidden="true">
                                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
@@ -775,14 +790,9 @@
                                         <p class="drop-tool__subtitle">Calculate refundable fee adjustments based on UIU calendar deadlines.</p>
                                     </div>
                                 </div>
-                                <span class="drop-tool__chevron" aria-hidden="true">
-                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                                        <polyline points="6 9 12 15 18 9" />
-                                    </svg>
-                                </span>
-                            </button>
+                            </div>
 
-                            <div class="drop-tool__body" id="dropToolBody" hidden>
+                            <div class="drop-tool__body" id="dropToolBody">
                                 <div class="drop-tool__inputs">
                                     <div class="field">
                                         <label for="dropCredits" class="field__label">Credits to Drop</label>
@@ -790,10 +800,12 @@
                                             <input
                                                 type="number"
                                                 id="dropCredits"
+                                                class="credit-input"
                                                 min="0"
                                                 max="25"
                                                 step="0.5"
-                                                value="3.0"
+                                                value="0"
+                                                placeholder="0.0"
                                             />
                                             <span class="input-suffix">credits</span>
                                         </div>
@@ -810,8 +822,9 @@
                                     </div>
 
                                     <div class="field">
-                                        <label for="dropWindow" class="field__label">Drop Window (UIU Fall 2026)</label>
+                                        <label for="dropWindow" class="field__label" id="dropWindowLabel">Drop Window (UIU Fall 2026)</label>
                                         <select id="dropWindow" class="select-input">
+                                            <option value="auto" selected>Dropped Today (Auto-Detect)</option>
                                             <option value="100">By Oct 31, 2026 — 100% Adjustable Refund</option>
                                             <option value="50">Nov 01 – Nov 09, 2026 — 50% Refund ('W' Grade)</option>
                                             <option value="0">After Nov 09, 2026 — 0% Refund (No adjustment)</option>
@@ -891,13 +904,13 @@
                                     <span class="result-label label" id="prevDueSummaryLabel">Previous Balance</span>
                                     <span class="result-value value" id="prevDueTotal">&#2547; 0.00</span>
                                 </div>
-                                <div class="summary-row">
+                                <div class="summary-row" id="totalWithoutDiscountRow" hidden>
                                     <span class="result-label label">Total Amount</span>
                                     <span class="result-value value" id="totalWithoutDiscount">&#2547; 0.00</span>
                                 </div>
-                                <div class="summary-row">
-                                    <span class="result-label label">Discount Amount</span>
-                                    <span class="result-value value" id="discountAmount">&#2547; 0.00</span>
+                                <div class="summary-row" id="discountSummaryRow" hidden>
+                                    <span class="result-label label" id="discountSummaryLabel">Discount Amount</span>
+                                    <span class="result-value value text-good" id="discountAmount">-&#2547; 0.00</span>
                                 </div>
                                 <div class="summary-row" id="dropRefundSummaryRow" hidden>
                                     <span class="result-label label">Drop Refund Credit</span>
@@ -924,9 +937,22 @@
                                 <p class="summary-group__title">Installment Schedule (UIU Calendar Milestones)</p>
                             </div>
                             <div
-                                class="summary-grid"
+                                class="summary-grid summary-grid--compact-inst"
                                 id="installmentRows"
                             ></div>
+                            <div class="inst-ledger-bar" id="instLedgerBar" hidden>
+                                <div class="inst-ledger-bar__item">
+                                    <span>Paid So Far:</span>
+                                    <strong id="instPaidSoFar" class="text-good">&#2547; 0.00</strong>
+                                </div>
+                                <div class="inst-ledger-bar__item">
+                                    <span>Remaining to Clear:</span>
+                                    <strong id="instRemainingDue">&#2547; 0.00</strong>
+                                </div>
+                                <div class="inst-ledger-bar__badge" id="instAllClearedBadge" hidden>
+                                    &#10003; All Cleared
+                                </div>
+                            </div>
                         </div>
 
                         <!-- Summary Action Buttons -->
@@ -1355,10 +1381,259 @@
                             <ul>
                                 <li>Installments must be paid by the respective milestone deadlines to avoid a late penalty fine of &#2547; 500/- per installment.</li>
                                 <li>Payable through authorized banking channels or designated MFS gateways (bKash, Nagad, Rocket).</li>
-                                <li>Dropping courses is subject to UIU Academic Calendar adjustment cutoffs (100% refund by Oct 31, 2026; 50% refund by Nov 09, 2026).</li>
+                                <li id="voucherDropNote">Dropping courses is subject to UIU Academic Calendar adjustment cutoffs (100% refund by Oct 31, 2026; 50% refund by Nov 09, 2026).</li>
                             </ul>
                         </div>
                     </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ══════════════════ USER MANUAL & POLICY GUIDE MODAL ══════════════════ -->
+        <div class="manual-modal" id="manualModal" role="dialog" aria-modal="true" aria-labelledby="manualTitle" hidden>
+            <div class="manual-modal__backdrop" id="manualBackdrop"></div>
+            <div class="manual-panel card">
+                <div class="manual-panel__head">
+                    <div class="manual-panel__titleGroup">
+                        <h2 class="manual-panel__title" id="manualTitle">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="22" height="22" aria-hidden="true">
+                                <path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1-2.5-2.5Z"/>
+                                <path d="M6 6h10M6 10h10M6 14h6"/>
+                            </svg>
+                            UIU Tuition & Installment Guide (User Manual)
+                        </h2>
+                        <p class="manual-panel__subtitle">Official guidelines, installment rules, waiver formulas, and sample student scenarios.</p>
+                    </div>
+                    <button type="button" class="settings-close" id="manualClose" aria-label="Close user manual">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                            <path d="m6 6 12 12M18 6 6 18" />
+                        </svg>
+                    </button>
+                </div>
+
+                <!-- Navigation Tabs -->
+                <nav class="manual-nav" aria-label="Manual Sections">
+                    <button type="button" class="manual-nav__btn is-active" data-target="manualSecOverview">Overview</button>
+                    <button type="button" class="manual-nav__btn" data-target="manualSecSettings">Settings Guide</button>
+                    <button type="button" class="manual-nav__btn" data-target="manualSecCourses">Course Types</button>
+                    <button type="button" class="manual-nav__btn" data-target="manualSecWaiver">Waiver &amp; Scholarship</button>
+                    <button type="button" class="manual-nav__btn" data-target="manualSecInstallments">Installment Rules</button>
+                    <button type="button" class="manual-nav__btn" data-target="manualSecDrop">Drop &amp; Refund</button>
+                    <button type="button" class="manual-nav__btn" data-target="manualSecScenarios">Sample Scenarios</button>
+                </nav>
+
+                <!-- Scrollable Body -->
+                <div class="manual-panel__body" id="manualBody">
+                    <!-- Section 1: Overview -->
+                    <section class="manual-section" id="manualSecOverview">
+                        <h3 class="manual-section__title">📌 Overview &amp; Programs</h3>
+                        <p>This calculator is specifically built for United International University (UIU) students to accurately compute tuition fees, official installment milestone splits, waiver/scholarship deductions, actual payment adjustments, and calendar drop refund credits.</p>
+                        
+                        <div class="manual-callout" id="manualBatchCallout">
+                            <strong>💡 Admission Batch Tuition Rates &amp; Settings:</strong>
+                            <p style="margin: 4px 0 0 0;">UIU tuition fee rates depend on your admission year. Currently configured rate: <strong><span id="manualConfiguredRateText">&#2547; 5,525.00</span> / credit</strong>.</p>
+                            <p style="margin: 4px 0 0 0;">• <strong>Spring 2024 &amp; Newer Batches:</strong> &#2547; 6,500.00 / credit</p>
+                            <p style="margin: 4px 0 0 0;">• <strong>Older Batches:</strong> &#2547; 5,525.00 / credit (or &#2547; 5,000.00 / credit for earlier batches)</p>
+                            <p style="margin: 4px 0 0 0;">👉 <em>You can change this rate anytime in the <strong>⚙ Settings</strong> modal to match your batch!</em></p>
+                        </div>
+
+                        <div class="manual-scenario-grid" id="manualOverviewPrograms">
+                            <!-- Populated dynamically by populateUserManual() -->
+                        </div>
+                    </section>
+
+                    <!-- Section 2: Settings & Customization Guide (Immediately After Overview) -->
+                    <section class="manual-section" id="manualSecSettings">
+                        <h3 class="manual-section__title">⚙ Settings &amp; Batch Customization Guide</h3>
+                        <p>Not every student has the same tuition rate or department fees. UIU charges different rates depending on admission year and academic program. All of these can be fully customized by clicking the <strong>⚙ Settings</strong> icon at the top right of the page.</p>
+
+                        <div class="manual-scenario-grid">
+                            <div class="manual-card">
+                                <div class="manual-card__head">
+                                    <span class="manual-card__title">1. Per-Credit Tuition Rate (&#2547;)</span>
+                                    <span class="manual-card__badge">Batch-Dependent</span>
+                                </div>
+                                <p>• <strong>Spring 2024 to Present Batches:</strong> Students admitted recently pay <strong>&#2547; 6,500.00</strong> per credit.</p>
+                                <p>• <strong>Fall 2022 to Fall 2023 Batches:</strong> <strong>&#2547; 5,525.00</strong> per credit.</p>
+                                <p>• <strong>Earlier Batches:</strong> <strong>&#2547; 5,000.00</strong> per credit or lower.</p>
+                                <p><em>Where to find:</em> Settings &gt; Core Rates &amp; Fees &gt; Per-credit rate.</p>
+                            </div>
+
+                            <div class="manual-card">
+                                <div class="manual-card__head">
+                                    <span class="manual-card__title">2. Trimester / Semester Fee (&#2547;)</span>
+                                    <span class="manual-card__badge">Standard: &#2547; 6,500</span>
+                                </div>
+                                <p>The fixed institutional fee charged each academic term. Standard undergraduate trimesters charge <strong>&#2547; 6,500.00</strong>, while 6-month B.Pharm semesters charge <strong>&#2547; 9,750.00</strong>.</p>
+                                <p><em>Where to find:</em> Settings &gt; Core Rates &amp; Fees &gt; Trimester / Semester fee.</p>
+                            </div>
+
+                            <div class="manual-card">
+                                <div class="manual-card__head">
+                                    <span class="manual-card__title">3. Mandatory Lab Fee (&#2547;)</span>
+                                    <span class="manual-card__badge">B.Pharm: &#2547; 5,000</span>
+                                </div>
+                                <p>Certain departments like Bachelor of Pharmacy (B.Pharm) require a fixed separate lab fee of <strong>&#2547; 5,000.00</strong> per semester. For CSE, EEE, and BBA, set this to <strong>0</strong>.</p>
+                                <p><em>Where to find:</em> Settings &gt; Core Rates &amp; Fees &gt; Mandatory Lab fee.</p>
+                            </div>
+
+                            <div class="manual-card">
+                                <div class="manual-card__head">
+                                    <span class="manual-card__title">4. Retake Policy Rates (%)</span>
+                                    <span class="manual-card__badge">50% / 100%</span>
+                                </div>
+                                <p>Under official UIU policy, 1st-time retakes receive a 50% discount (you pay 50% tuition). Subsequent repeats (2nd+ retake) pay 100% full tuition.</p>
+                                <p><em>Where to find:</em> Settings &gt; Core Rates &amp; Fees &gt; Retake rates.</p>
+                            </div>
+
+                            <div class="manual-card">
+                                <div class="manual-card__head">
+                                    <span class="manual-card__title">5. Minimum Fresh Credits for Waiver</span>
+                                    <span class="manual-card__badge">Default: 9 Credits</span>
+                                </div>
+                                <p>UIU requires students to take at least <strong>9 fresh credits</strong> in a trimester to remain eligible for scholarship or waiver discounts. Taking fewer credits automatically suspends the waiver for that trimester.</p>
+                                <p><em>Where to find:</em> Settings &gt; Scholarship &amp; Waiver Policy &gt; Minimum fresh credits.</p>
+                            </div>
+
+                            <div class="manual-card">
+                                <div class="manual-card__head">
+                                    <span class="manual-card__title">6. Default Deposit at Registration (&#2547;)</span>
+                                    <span class="manual-card__badge">Standard: &#2547; 20,000</span>
+                                </div>
+                                <p>UIU asks students to pay an advance deposit of <strong>&#2547; 20,000.00</strong> during registration, and then splits the remaining balance across installments. Set to 0 if you do not pay at registration.</p>
+                                <p><em>Where to find:</em> Settings &gt; Scholarship &amp; Waiver Policy &gt; Default deposit.</p>
+                            </div>
+
+                            <div class="manual-card">
+                                <div class="manual-card__head">
+                                    <span class="manual-card__title">7. Campus Services &amp; Late Fines</span>
+                                    <span class="manual-card__badge">Custom Slabs</span>
+                                </div>
+                                <p>Configure defaults for University Bus (&#2547; 8,000), Gymnasium (&#2547; 2,000), Late Installment Fine (&#2547; 500 per installment), and Late Registration Fine (&#2547; 1,000).</p>
+                                <p><em>Where to find:</em> Settings &gt; Campus Services &amp; Late Fines.</p>
+                            </div>
+
+                            <div class="manual-card">
+                                <div class="manual-card__head">
+                                    <span class="manual-card__title">8. Installment Counts &amp; Milestone Dates</span>
+                                    <span class="manual-card__badge">Full Flexibility</span>
+                                </div>
+                                <p>Configure 3 installments (40%, 30%, 30%) or 4 installments (25% each), plus customize official UIU calendar deadlines for 100% drop, 50% withdrawal, and milestone due dates.</p>
+                                <p><em>Where to find:</em> Settings &gt; Milestone Dates &amp; Installment Count.</p>
+                            </div>
+                        </div>
+
+                        <div style="display:flex; justify-content:center; margin-top:8px;">
+                            <button type="button" class="summary-btn summary-btn--primary" id="manualOpenSettingsBtn" style="max-width:320px;">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" width="16" height="16" aria-hidden="true">
+                                    <circle cx="12" cy="12" r="3"/>
+                                    <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1Z"/>
+                                </svg>
+                                <span>Open Settings (⚙) Now</span>
+                            </button>
+                        </div>
+                    </section>
+
+                    <!-- Section 2: Course Types -->
+                    <section class="manual-section" id="manualSecCourses">
+                        <h3 class="manual-section__title">🎓 Course Categories &amp; Billing Rates</h3>
+                        <div class="manual-card">
+                            <div class="manual-card__head">
+                                <span class="manual-card__title">1. Fresh / Regular Credits</span>
+                                <span class="manual-card__badge">Payable: 100% (Eligible for Waiver)</span>
+                            </div>
+                            <p>Standard courses taken for the first time. Eligible for merit scholarships and tuition fee waivers provided the minimum 9 fresh credit threshold is satisfied.</p>
+                        </div>
+                        <div class="manual-card">
+                            <div class="manual-card__head">
+                                <span class="manual-card__title">2. Non-Waiver Credits (FYDP, Capstone, Practicum)</span>
+                                <span class="manual-card__badge">Payable: 100% (No Waiver/Scholarship)</span>
+                            </div>
+                            <p>Special project or terminal courses such as Final Year Design Project (FYDP I, II, III), Capstone Project, or Internships. Under UIU academic policies, students must pay full credit fees regardless of scholarship/waiver standing.</p>
+                        </div>
+                        <div class="manual-card">
+                            <div class="manual-card__head">
+                                <span class="manual-card__title">3. Retake (First-Time)</span>
+                                <span class="manual-card__badge">Payable: 50%</span>
+                            </div>
+                            <p>Under official UIU rules, retaking a course for the very first time qualifies for a 50% tuition concession. You only pay half the per-credit tuition rate.</p>
+                        </div>
+                        <div class="manual-card">
+                            <div class="manual-card__head">
+                                <span class="manual-card__title">4. Retake (Not First-Time)</span>
+                                <span class="manual-card__badge">Payable: 100%</span>
+                            </div>
+                            <p>Courses being repeated for the second time or more (3rd attempt+) are charged at the full 100% tuition rate.</p>
+                        </div>
+                    </section>
+
+                    <!-- Section 3: Waiver & Scholarship -->
+                    <section class="manual-section" id="manualSecWaiver">
+                        <h3 class="manual-section__title">💎 Waiver &amp; Scholarship Rules</h3>
+                        <div class="manual-callout">
+                            <strong>Minimum Credit Rule:</strong> Undergraduate students must enroll in at least <strong>9 fresh credits</strong> in the trimester to be eligible for scholarship or waiver discounts. If you take fewer than 9 fresh credits, the discount is suspended automatically.
+                        </div>
+                        <div class="manual-card">
+                            <div class="manual-card__head">
+                                <span class="manual-card__title">How Waiver Discount is Deducted (UIU Rule)</span>
+                                <span class="manual-card__badge">Cuts from 1st Installment First</span>
+                            </div>
+                            <p>UIU splits gross fees into nominal installments (40%, 30%, 30%), and then <strong>deducts your waiver/scholarship discount directly from the 1st installment</strong>!</p>
+                            <p>• If discount &le; 1st installment: 1st installment is reduced, while 2nd and 3rd installments remain standard nominal amounts.</p>
+                            <p>• If discount &gt; 1st installment (e.g. 50% or 100% waiver): The 1st installment becomes <strong>&#2547; 0 (skipped)</strong>, and the remaining discount cascades into the 2nd installment.</p>
+                        </div>
+                    </section>
+
+                    <!-- Section 4: Installments -->
+                    <section class="manual-section" id="manualSecInstallments">
+                        <h3 class="manual-section__title">📅 Installment Milestones &amp; Payment Tracker</h3>
+                        <p>UIU requires students to meet cumulative payment thresholds by official calendar deadlines:</p>
+                        <div class="manual-card">
+                            <p>• <strong>Deposit at Registration:</strong> As part of tuition fees, students typically pay &#2547; 20,000 at registration. The remaining balance is split across installments. (If no deposit is paid, the entire bill is split).</p>
+                            <p>• <strong>1st Installment (40%):</strong> Payable by official 1st installment milestone deadline (Cumulative requirement = 40%).</p>
+                            <p>• <strong>2nd Installment (30%):</strong> Payable by official 2nd installment milestone deadline (Cumulative requirement = 70%).</p>
+                            <p>• <strong>3rd Installment (30%):</strong> Payable by official 3rd installment milestone deadline (Cumulative requirement = 100%).</p>
+                        </div>
+                        <div class="manual-callout">
+                            <strong>Payment Tracker &amp; Cumulative Adjustments:</strong>
+                            <p>When you enter the amount you <strong>actually paid</strong> in each installment row:</p>
+                            <p>• <strong>Overpayment:</strong> If you pay more than scheduled (e.g., paid &#2547; 15,000 when &#2547; 12,350 was due), the &#2547; 2,650 surplus automatically reduces your 2nd installment!</p>
+                            <p>• <strong>Underpayment:</strong> If you pay less than scheduled, the remaining shortfall carries forward into your next installment so that you always reach the 70% or 100% milestone required by the university.</p>
+                        </div>
+                    </section>
+
+                    <!-- Section 5: Drop & Refund -->
+                    <section class="manual-section" id="manualSecDrop">
+                        <h3 class="manual-section__title">🔄 Course Drop &amp; Refund Policy</h3>
+                        <div class="manual-scenario-grid">
+                            <div class="manual-card">
+                                <div class="manual-card__head">
+                                    <span class="manual-card__title">100% Adjustable Refund</span>
+                                    <span class="manual-card__badge">By Oct 31, 2026</span>
+                                </div>
+                                <p>Courses dropped within this window receive a 100% credit adjustment applied to your student ledger. Course is removed from transcript.</p>
+                            </div>
+                            <div class="manual-card">
+                                <div class="manual-card__head">
+                                    <span class="manual-card__title">50% Refund ('W' Grade)</span>
+                                    <span class="manual-card__badge">Nov 01 – Nov 09, 2026</span>
+                                </div>
+                                <p>Withdrawal window. 50% credit adjustment is refunded to your account. A withdrawal grade ('W') appears on your grade sheet.</p>
+                            </div>
+                        </div>
+                        <div class="manual-callout">
+                            <strong>Dropped Today (Auto-Detect):</strong> Selecting this option automatically inspects today's actual calendar date against UIU official deadlines to apply the correct refund rate instantly.
+                        </div>
+                    </section>
+
+                    <!-- Section 6: Sample Scenarios -->
+                    <section class="manual-section" id="manualSecScenarios">
+                        <h3 class="manual-section__title">💡 Step-by-Step Sample Student Scenarios</h3>
+                        <p style="margin: 0; font-size: 0.8rem; color: var(--muted);">All scenarios below are dynamically calculated using your currently active settings (per-credit rate: <strong id="manualScenarioRateBadge">&#2547; 5,525.00</strong>):</p>
+                        <div class="manual-scenario-grid" id="manualScenariosGrid">
+                            <!-- Populated dynamically by populateUserManual() -->
+                        </div>
+                    </section>
                 </div>
             </div>
         </div>

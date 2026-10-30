@@ -1,93 +1,325 @@
-const PROGRAM_PROFILES = Object.freeze({
-  trimester: {
-    id: "trimester",
-    name: "Undergraduate Trimester",
-    termLabel: "Trimester: Fall 2026",
-    semesterFeeLabel: "Trimester Fee",
-    perCreditFee: 5525,
-    semesterFee: 6500,
-    labFee: 0,
-    firstTimeRetakeRate: 0.5,
-    nonFirstTimeRetakeRate: 1,
-    defaultScholarshipPercent: 0,
-    defaultWaiverPercent: 0,
-    installmentRates: [0.4, 0.3, 0.3],
-    minCreditsForWaiver: 9,
-    defaultPaidRegistration: 0,
-    transportFee: 4000,
-    gymFee: 2000,
-    lateFineInstallment: 500,
-    lateRegistrationFine: 1000,
-    trimesterTitle: "Fall 2026",
-    dueDateInst1: "2026-11-22",
-    dueDateInst2: "2026-12-15",
-    dueDateInst3: "2027-01-13",
-    dueDateInst4: "",
-    refund100Date: "2026-10-31",
-    refund50Date: "2026-11-09",
-    dropWindows: [
-      { value: "100", label: "By Oct 31, 2026 — 100% Adjustable Refund" },
-      { value: "50", label: "Nov 01 – Nov 09, 2026 — 50% Refund ('W' Grade)" },
-      { value: "0", label: "After Nov 09, 2026 — 0% Refund (No adjustment)" },
-    ],
-  },
-  pharmacy: {
-    id: "pharmacy",
-    name: "Bachelor of Pharmacy (B.Pharm)",
-    termLabel: "Semester: Fall 2026",
-    semesterFeeLabel: "Semester Fee",
-    perCreditFee: 6500,
-    semesterFee: 9750,
-    labFee: 5000,
-    firstTimeRetakeRate: 0.5,
-    nonFirstTimeRetakeRate: 1,
-    defaultScholarshipPercent: 0,
-    defaultWaiverPercent: 0,
-    installmentRates: [0.25, 0.25, 0.25, 0.25],
-    minCreditsForWaiver: 9,
-    defaultPaidRegistration: 20000,
-    transportFee: 4000,
-    gymFee: 2000,
-    lateFineInstallment: 500,
-    lateRegistrationFine: 1000,
-    trimesterTitle: "Fall 2026 (B.Pharm)",
-    dueDateInst1: "2026-09-15",
-    dueDateInst2: "2026-10-11",
-    dueDateInst3: "2026-11-10",
-    dueDateInst4: "2026-12-09",
-    refund100Date: "2026-08-10",
-    refund50Date: "2026-10-17",
-    dropWindows: [
-      { value: "100", label: "By Aug 10, 2026 — 100% Adjustable Refund" },
-      { value: "50", label: "By Oct 17, 2026 — Course Withdrawal ('W' Grade)" },
-      { value: "0", label: "After Oct 17, 2026 — 0% Refund (No adjustment)" },
-    ],
-  },
+function formatMilestoneDate(dateStr) {
+  if (!dateStr) return "";
+  try {
+    const [year, month, day] = dateStr.split("-").map(Number);
+    if (!year || !month || !day) return dateStr;
+    const date = new Date(year, month - 1, day);
+    return date.toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+    });
+  } catch {
+    return dateStr;
+  }
+}
+
+// ─── Official UIU Academic Calendar Schedule Registry ────────────────────────
+// UIU trimesters roll over ONLY once the official start date (Classes Begin) arrives.
+// Before that start date arrives, the installment & refund dates remain on the current term!
+const UIU_ACADEMIC_TERMS = Object.freeze({
+  trimester: [
+    {
+      termId: "spring-2026",
+      title: "Spring 2026",
+      startDate: "2026-02-10",
+      refund100Date: "2026-02-25",
+      refund50Date: "2026-03-08",
+      dueDateInst1: "2026-04-12",
+      dueDateInst2: "2026-05-12",
+      dueDateInst3: "2026-06-08",
+      dueDateInst4: "",
+    },
+    {
+      termId: "summer-2026",
+      title: "Summer 2026",
+      startDate: "2026-06-15",
+      refund100Date: "2026-06-27",
+      refund50Date: "2026-07-12",
+      dueDateInst1: "2026-08-11",
+      dueDateInst2: "2026-09-15",
+      dueDateInst3: "2026-10-06",
+      dueDateInst4: "",
+    },
+    {
+      termId: "fall-2026",
+      title: "Fall 2026",
+      startDate: "2026-10-27", // Official UIU Fall 2026 classes began Oct 27, 2026
+      refund100Date: "2026-10-31",
+      refund50Date: "2026-11-09",
+      dueDateInst1: "2026-11-22",
+      dueDateInst2: "2026-12-15",
+      dueDateInst3: "2027-01-13",
+      dueDateInst4: "",
+    },
+    {
+      termId: "spring-2027",
+      title: "Spring 2027",
+      startDate: "2027-02-09", // Official UIU Spring 2027 classes begin Feb 9, 2027
+      refund100Date: "2027-02-24",
+      refund50Date: "2027-03-07",
+      dueDateInst1: "2027-04-11",
+      dueDateInst2: "2027-05-11",
+      dueDateInst3: "2027-06-08",
+      dueDateInst4: "",
+    },
+    {
+      termId: "summer-2027",
+      title: "Summer 2027",
+      startDate: "2027-06-15",
+      refund100Date: "2027-06-27",
+      refund50Date: "2027-07-12",
+      dueDateInst1: "2027-08-10",
+      dueDateInst2: "2027-09-14",
+      dueDateInst3: "2027-10-05",
+      dueDateInst4: "",
+    },
+    {
+      termId: "fall-2027",
+      title: "Fall 2027",
+      startDate: "2027-10-26",
+      refund100Date: "2027-10-31",
+      refund50Date: "2027-11-09",
+      dueDateInst1: "2027-11-21",
+      dueDateInst2: "2027-12-14",
+      dueDateInst3: "2028-01-12",
+      dueDateInst4: "",
+    },
+  ],
+  pharmacy: [
+    {
+      termId: "spring-2026-pharm",
+      title: "Spring 2026",
+      startDate: "2026-02-15",
+      refund100Date: "2026-03-10",
+      refund50Date: "2026-04-17",
+      dueDateInst1: "2026-03-20",
+      dueDateInst2: "2026-04-20",
+      dueDateInst3: "2026-05-20",
+      dueDateInst4: "2026-06-20",
+    },
+    {
+      termId: "fall-2026-pharm",
+      title: "Fall 2026",
+      startDate: "2026-08-01",
+      refund100Date: "2026-08-10",
+      refund50Date: "2026-10-17",
+      dueDateInst1: "2026-09-15",
+      dueDateInst2: "2026-10-11",
+      dueDateInst3: "2026-11-10",
+      dueDateInst4: "2026-12-09",
+    },
+    {
+      termId: "spring-2027-pharm",
+      title: "Spring 2027",
+      startDate: "2027-02-15",
+      refund100Date: "2027-03-10",
+      refund50Date: "2027-04-17",
+      dueDateInst1: "2027-03-20",
+      dueDateInst2: "2027-04-20",
+      dueDateInst3: "2027-05-20",
+      dueDateInst4: "2027-06-20",
+    },
+    {
+      termId: "fall-2027-pharm",
+      title: "Fall 2027",
+      startDate: "2027-08-01",
+      refund100Date: "2027-08-10",
+      refund50Date: "2027-10-17",
+      dueDateInst1: "2027-09-15",
+      dueDateInst2: "2027-10-11",
+      dueDateInst3: "2027-11-10",
+      dueDateInst4: "2027-12-09",
+    },
+  ],
 });
+
+function getTermsListForProgram(program = "trimester", year) {
+  const isPharm = program === "pharmacy";
+  const baseList = [...UIU_ACADEMIC_TERMS[isPharm ? "pharmacy" : "trimester"]];
+  const maxYear = baseList.reduce((m, t) => {
+    const y = parseInt(t.startDate.slice(0, 4), 10);
+    return y > m ? y : m;
+  }, 2027);
+
+  if (year > maxYear) {
+    for (let y = maxYear + 1; y <= year; y++) {
+      if (isPharm) {
+        baseList.push(
+          {
+            termId: `spring-${y}-pharm`,
+            title: `Spring ${y}`,
+            startDate: `${y}-02-15`,
+            refund100Date: `${y}-03-10`,
+            refund50Date: `${y}-04-17`,
+            dueDateInst1: `${y}-03-20`,
+            dueDateInst2: `${y}-04-20`,
+            dueDateInst3: `${y}-05-20`,
+            dueDateInst4: `${y}-06-20`,
+          },
+          {
+            termId: `fall-${y}-pharm`,
+            title: `Fall ${y}`,
+            startDate: `${y}-08-01`,
+            refund100Date: `${y}-08-10`,
+            refund50Date: `${y}-10-17`,
+            dueDateInst1: `${y}-09-15`,
+            dueDateInst2: `${y}-10-11`,
+            dueDateInst3: `${y}-11-10`,
+            dueDateInst4: `${y}-12-09`,
+          }
+        );
+      } else {
+        baseList.push(
+          {
+            termId: `spring-${y}`,
+            title: `Spring ${y}`,
+            startDate: `${y}-02-09`,
+            refund100Date: `${y}-02-24`,
+            refund50Date: `${y}-03-07`,
+            dueDateInst1: `${y}-04-11`,
+            dueDateInst2: `${y}-05-11`,
+            dueDateInst3: `${y}-06-08`,
+            dueDateInst4: "",
+          },
+          {
+            termId: `summer-${y}`,
+            title: `Summer ${y}`,
+            startDate: `${y}-06-15`,
+            refund100Date: `${y}-06-27`,
+            refund50Date: `${y}-07-12`,
+            dueDateInst1: `${y}-08-10`,
+            dueDateInst2: `${y}-09-14`,
+            dueDateInst3: `${y}-10-05`,
+            dueDateInst4: "",
+          },
+          {
+            termId: `fall-${y}`,
+            title: `Fall ${y}`,
+            startDate: `${y}-10-26`,
+            refund100Date: `${y}-10-31`,
+            refund50Date: `${y}-11-09`,
+            dueDateInst1: `${y}-11-21`,
+            dueDateInst2: `${y}-12-14`,
+            dueDateInst3: `${y + 1}-01-12`,
+            dueDateInst4: "",
+          }
+        );
+      }
+    }
+  }
+  return baseList.sort((a, b) => a.startDate.localeCompare(b.startDate));
+}
+
+function getActiveAcademicTerm(program = "trimester", referenceDate = new Date()) {
+  const currentYear = referenceDate.getFullYear();
+  const allTerms = getTermsListForProgram(program, currentYear + 1);
+
+  const yyyy = referenceDate.getFullYear();
+  const mm = String(referenceDate.getMonth() + 1).padStart(2, "0");
+  const dd = String(referenceDate.getDate()).padStart(2, "0");
+  const todayStr = `${yyyy}-${mm}-${dd}`;
+
+  // Only terms whose startDate <= today have started!
+  // This guarantees: before the new trimester starts, dates do NOT update.
+  const startedTerms = allTerms.filter((term) => term.startDate <= todayStr);
+
+  if (startedTerms.length > 0) {
+    const activeTerm = startedTerms[startedTerms.length - 1];
+    const upcomingTerm = allTerms.find((term) => term.startDate > todayStr);
+    return {
+      ...activeTerm,
+      nextTerm: upcomingTerm || null,
+    };
+  }
+
+  return {
+    ...allTerms[0],
+    nextTerm: allTerms[1] || null,
+  };
+}
+
+function buildDropWindowsForTerm(term) {
+  const d100 = formatMilestoneDate(term.refund100Date);
+  const d50 = formatMilestoneDate(term.refund50Date);
+  return [
+    { value: "100", label: `By ${d100} — 100% Adjustable Refund` },
+    { value: "50", label: `By ${d50} — 50% Refund ('W' Grade)` },
+    { value: "0", label: `After ${d50} — 0% Refund (No adjustment)` },
+  ];
+}
+
+function getProgramProfile(programId, referenceDate = new Date()) {
+  const isPharm = programId === "pharmacy";
+  const activeTerm = getActiveAcademicTerm(isPharm ? "pharmacy" : "trimester", referenceDate);
+
+  return {
+    id: isPharm ? "pharmacy" : "trimester",
+    name: isPharm ? "Bachelor of Pharmacy (B.Pharm)" : "Undergraduate Trimester",
+    termLabel: `${isPharm ? "Semester" : "Trimester"}: ${activeTerm.title}`,
+    semesterFeeLabel: isPharm ? "Semester Fee" : "Trimester Fee",
+    perCreditFee: isPharm ? 6500 : 5525,
+    semesterFee: isPharm ? 9750 : 6500,
+    labFee: isPharm ? 5000 : 0,
+    firstTimeRetakeRate: 0.5,
+    nonFirstTimeRetakeRate: 1,
+    defaultScholarshipPercent: 0,
+    defaultWaiverPercent: 0,
+    installmentRates: isPharm ? [0.25, 0.25, 0.25, 0.25] : [0.4, 0.3, 0.3],
+    minCreditsForWaiver: 9,
+    defaultPaidRegistration: isPharm ? 20000 : 0,
+    transportFee: 4000,
+    gymFee: 2000,
+    lateFineInstallment: 500,
+    lateRegistrationFine: 1000,
+    termId: activeTerm.termId,
+    trimesterTitle: isPharm ? `${activeTerm.title} (B.Pharm)` : activeTerm.title,
+    dueDateInst1: activeTerm.dueDateInst1,
+    dueDateInst2: activeTerm.dueDateInst2,
+    dueDateInst3: activeTerm.dueDateInst3,
+    dueDateInst4: activeTerm.dueDateInst4 || "",
+    refund100Date: activeTerm.refund100Date,
+    refund50Date: activeTerm.refund50Date,
+    dropWindows: buildDropWindowsForTerm(activeTerm),
+    activeTerm,
+  };
+}
+
+const PROGRAM_PROFILES = {
+  get trimester() {
+    return getProgramProfile("trimester");
+  },
+  get pharmacy() {
+    return getProgramProfile("pharmacy");
+  },
+};
+
+const initialTrimProfile = getProgramProfile("trimester");
 
 const DEFAULT_SETTINGS = Object.freeze({
   program: "trimester",
-  perCreditFee: 5525,
-  semesterFee: 6500,
-  labFee: 0,
+  perCreditFee: initialTrimProfile.perCreditFee,
+  semesterFee: initialTrimProfile.semesterFee,
+  labFee: initialTrimProfile.labFee,
   firstTimeRetakeRate: 0.5,
   nonFirstTimeRetakeRate: 1,
   defaultScholarshipPercent: 0,
   defaultWaiverPercent: 0,
-  installmentRates: [0.4, 0.3, 0.3],
+  installmentRates: [...initialTrimProfile.installmentRates],
   minCreditsForWaiver: 9,
-  defaultPaidRegistration: 0,
-  transportFee: 4000,
-  gymFee: 2000,
-  lateFineInstallment: 500,
-  lateRegistrationFine: 1000,
-  trimesterTitle: "Fall 2026",
-  dueDateInst1: "2026-11-22",
-  dueDateInst2: "2026-12-15",
-  dueDateInst3: "2027-01-13",
-  dueDateInst4: "",
-  refund100Date: "2026-10-31",
-  refund50Date: "2026-11-09",
+  defaultPaidRegistration: initialTrimProfile.defaultPaidRegistration,
+  transportFee: initialTrimProfile.transportFee,
+  gymFee: initialTrimProfile.gymFee,
+  lateFineInstallment: initialTrimProfile.lateFineInstallment,
+  lateRegistrationFine: initialTrimProfile.lateRegistrationFine,
+  lastCalendarTermId: initialTrimProfile.termId,
+  trimesterTitle: initialTrimProfile.trimesterTitle,
+  dueDateInst1: initialTrimProfile.dueDateInst1,
+  dueDateInst2: initialTrimProfile.dueDateInst2,
+  dueDateInst3: initialTrimProfile.dueDateInst3,
+  dueDateInst4: initialTrimProfile.dueDateInst4,
+  refund100Date: initialTrimProfile.refund100Date,
+  refund50Date: initialTrimProfile.refund50Date,
 });
 
 const THEME_STORAGE_KEY = "installment-theme";
@@ -231,7 +463,9 @@ const resultFields = {
   prevDueSummaryRow: document.getElementById("prevDueSummaryRow"),
   prevDueSummaryLabel: document.getElementById("prevDueSummaryLabel"),
   prevDueTotal: document.getElementById("prevDueTotal"),
+  totalWithoutDiscountRow: document.getElementById("totalWithoutDiscountRow"),
   totalWithoutDiscount: document.getElementById("totalWithoutDiscount"),
+  discountSummaryRow: document.getElementById("discountSummaryRow"),
   discountAmount: document.getElementById("discountAmount"),
   dropRefundSummaryRow: document.getElementById("dropRefundSummaryRow"),
   dropRefundTotal: document.getElementById("dropRefundTotal"),
@@ -288,6 +522,14 @@ const voucherTerm = document.getElementById("voucherTerm");
 const voucherTableBody = document.getElementById("voucherTableBody");
 const voucherScheduleBody = document.getElementById("voucherScheduleBody");
 
+// User Manual Modal Elements
+const headerManualBtn = document.getElementById("headerManualBtn");
+const manualModal = document.getElementById("manualModal");
+const manualBackdrop = document.getElementById("manualBackdrop");
+const manualClose = document.getElementById("manualClose");
+const manualBody = document.getElementById("manualBody");
+const manualNavBtns = document.querySelectorAll(".manual-nav__btn");
+
 // Action Toast Notification
 const actionToast = document.getElementById("actionToast");
 const actionToastMsg = document.getElementById("actionToastMsg");
@@ -295,6 +537,13 @@ const actionToastMsg = document.getElementById("actionToastMsg");
 let calculatorSettings = loadStoredSettings();
 let lastCalculationState = null;
 let toastTimeoutId = null;
+let actualPaidInstallments = {};
+
+// Installment Ledger Bar
+const instLedgerBar = document.getElementById("instLedgerBar");
+const instPaidSoFar = document.getElementById("instPaidSoFar");
+const instRemainingDue = document.getElementById("instRemainingDue");
+const instAllClearedBadge = document.getElementById("instAllClearedBadge");
 
 const animatedValues = new Map();
 const animationHandles = new Map();
@@ -597,33 +846,33 @@ function getInstallmentMilestoneInfo(index) {
     ? [
         {
           date: calculatorSettings.dueDateInst1,
-          name: "1st Milestone (Bus/Gym cleared)",
+          name: "1st Installment",
         },
         {
           date: calculatorSettings.dueDateInst2,
-          name: "Mid-Term Exam Clearance",
+          name: "2nd Installment",
         },
         {
           date: calculatorSettings.dueDateInst3,
-          name: "Admit Clearance",
+          name: "3rd Installment",
         },
         {
           date: calculatorSettings.dueDateInst4,
-          name: "Final Exam Clearance",
+          name: "4th Installment",
         },
       ]
     : [
         {
           date: calculatorSettings.dueDateInst1,
-          name: "Mid Exam Clearance",
+          name: "1st Installment",
         },
         {
           date: calculatorSettings.dueDateInst2,
-          name: "Admit Clearance",
+          name: "2nd Installment",
         },
         {
           date: calculatorSettings.dueDateInst3,
-          name: "Final Exam Clearance",
+          name: "3rd Installment",
         },
       ];
 
@@ -637,47 +886,264 @@ function getInstallmentMilestoneInfo(index) {
 
   return {
     dateFormatted: "",
-    name: `Milestone ${index + 1}`,
+    name: `Installment ${index + 1}`,
   };
 }
 
-function renderInstallmentRows(values, usePlaceholder = false) {
-  resultFields.installmentRows.innerHTML = "";
-  const placeholder = "\u09F3 \u2014";
+function onInstallmentPaidInput(e) {
+  const input = e.target;
+  const index = Number(input.dataset.index);
+  const val = input.value.trim();
 
-  calculatorSettings.installmentRates.forEach((rate, index) => {
-    const row = document.createElement("div");
-    row.className = "summary-row summary-row--installment";
+  if (val === "") {
+    delete actualPaidInstallments[index];
+  } else {
+    actualPaidInstallments[index] = Math.max(0, Number(val) || 0);
+  }
 
-    const labelGroup = document.createElement("div");
-    labelGroup.className = "installment-label-group";
+  calculateAndRender({ animate: false });
+}
 
-    const label = document.createElement("span");
-    label.className = "result-label label";
-    const ordinals = ["1st", "2nd", "3rd", "4th", "5th", "6th", "7th", "8th"];
-    const namePrefix = ordinals[index] || `Installment ${index + 1}`;
-    label.textContent = `${namePrefix} Installment (${formatPercent(rate * 100)}%)`;
+function onInstallmentPaidFullClick(e) {
+  const btn = e.currentTarget;
+  const index = Number(btn.dataset.index);
+  const due = Number(btn.dataset.due) || 0;
+  actualPaidInstallments[index] = due;
 
+  const input = resultFields.installmentRows.querySelector(
+    `.inst-paid-input[data-index="${index}"]`,
+  );
+  if (input) {
+    input.value = String(due);
+  }
+
+  calculateAndRender({ animate: false });
+}
+
+function renderInstallmentRows(scheduleData, usePlaceholder = false) {
+  if (!resultFields.installmentRows) return;
+  const rates = calculatorSettings.installmentRates;
+  const ordinals = ["1st", "2nd", "3rd", "4th", "5th", "6th", "7th", "8th"];
+
+  if (usePlaceholder || !scheduleData) {
+    resultFields.installmentRows.innerHTML = "";
+    if (instLedgerBar) instLedgerBar.hidden = true;
+    rates.forEach((rate, index) => {
+      const row = document.createElement("div");
+      row.className = "inst-row";
+      const namePrefix = ordinals[index] || `Inst. ${index + 1}`;
+      row.innerHTML = `
+        <div class="inst-row__meta">
+          <div class="inst-row__titleGroup">
+            <span class="inst-row__name">${namePrefix} Inst.</span>
+            <span class="inst-row__rate">${formatPercent(rate * 100)}%</span>
+          </div>
+          <span class="inst-row__due">—</span>
+        </div>
+        <div class="inst-row__tracker">
+          <div class="inst-row__inputWrap">
+            <span class="inst-row__currency">\u09F3</span>
+            <input type="number" class="inst-paid-input" disabled placeholder="0" />
+          </div>
+        </div>
+        <div class="inst-row__amountGroup">
+          <span class="inst-row__amount">\u09F3 —</span>
+        </div>
+      `;
+      resultFields.installmentRows.appendChild(row);
+    });
+    return;
+  }
+
+  const {
+    nominal = [],
+    scheduled = [],
+    adjusted = [],
+  } = scheduleData;
+
+  let totalActuallyPaid = 0;
+  let hasAnyPayment = false;
+  let allCleared = true;
+
+  const existingRows = resultFields.installmentRows.querySelectorAll(
+    ".inst-row[data-index]",
+  );
+  const canUpdateInPlace = existingRows.length === rates.length;
+
+  if (!canUpdateInPlace) {
+    resultFields.installmentRows.innerHTML = "";
+  }
+
+  rates.forEach((rate, index) => {
+    const namePrefix = ordinals[index] || `Inst. ${index + 1}`;
     const milestone = getInstallmentMilestoneInfo(index);
-    const milestoneBadge = document.createElement("span");
-    milestoneBadge.className = "milestone-badge";
-    if (milestone.dateFormatted) {
-      milestoneBadge.textContent = `Due: ${milestone.dateFormatted} • ${milestone.name}`;
-    } else {
-      milestoneBadge.textContent = milestone.name;
+    const scheduledDue = scheduled[index] ?? 0;
+    const adjustedDue = adjusted[index] ?? scheduledDue;
+    const rawPaid = actualPaidInstallments[index];
+    const hasPaidEntered =
+      rawPaid !== undefined && rawPaid !== null && rawPaid !== "";
+    const paidAmount = hasPaidEntered ? Math.max(0, Number(rawPaid) || 0) : 0;
+
+    if (hasPaidEntered) {
+      hasAnyPayment = true;
+      totalActuallyPaid = roundToTwo(totalActuallyPaid + paidAmount);
     }
 
-    labelGroup.append(label, milestoneBadge);
+    let statusHtml = "";
+    let isCleared = false;
 
-    const value = document.createElement("span");
-    value.className = "result-value value";
-    value.textContent = usePlaceholder
-      ? placeholder
-      : formatBDT(values[index] ?? 0);
+    if (scheduledDue === 0 && !hasPaidEntered) {
+      statusHtml = `<span class="inst-tag inst-tag--waived">Waived</span>`;
+      isCleared = true;
+    } else if (hasPaidEntered) {
+      if (paidAmount >= adjustedDue) {
+        isCleared = true;
+        const surplus = roundToTwo(paidAmount - adjustedDue);
+        if (surplus > 0 && index < rates.length - 1) {
+          statusHtml = `<span class="inst-tag inst-tag--surplus">+&#2547;${currencyFormatter.format(surplus)}</span>`;
+        } else {
+          statusHtml = `<span class="inst-tag inst-tag--paid">&#10003; Paid</span>`;
+        }
+      } else {
+        allCleared = false;
+        const remainingThisInst = roundToTwo(adjustedDue - paidAmount);
+        statusHtml = `<span class="inst-tag inst-tag--partial">Rem: &#2547;${currencyFormatter.format(remainingThisInst)}</span>`;
+      }
+    } else {
+      if (adjustedDue > 0) {
+        allCleared = false;
+        statusHtml = `<span class="inst-tag inst-tag--pending">Due</span>`;
+      } else {
+        statusHtml = `<span class="inst-tag inst-tag--waived">&#2547; 0</span>`;
+      }
+    }
 
-    row.append(labelGroup, value);
-    resultFields.installmentRows.append(row);
+    if (canUpdateInPlace) {
+      const row = existingRows[index];
+      if (row) {
+        row.classList.toggle("inst-row--cleared", isCleared);
+        const nameEl = row.querySelector(".inst-row__name");
+        if (nameEl) nameEl.textContent = `${namePrefix} Inst.`;
+        const rateEl = row.querySelector(".inst-row__rate");
+        if (rateEl) rateEl.textContent = `${formatPercent(rate * 100)}%`;
+        const dueEl = row.querySelector(".inst-row__due");
+        if (dueEl)
+          dueEl.textContent = milestone.dateFormatted
+            ? `Due: ${milestone.dateFormatted}`
+            : "";
+        const amountEl = row.querySelector(".inst-row__amount");
+        if (amountEl) {
+          amountEl.textContent = formatBDT(adjustedDue);
+          amountEl.classList.toggle(
+            "inst-row__amount--waived",
+            scheduledDue === 0 && adjustedDue === 0,
+          );
+        }
+        const statusWrap = row.querySelector(".inst-row__statusWrap");
+        if (statusWrap) statusWrap.innerHTML = statusHtml;
+        const inputEl = row.querySelector(".inst-paid-input");
+        if (inputEl) {
+          inputEl.placeholder = String(roundToTwo(adjustedDue));
+          if (document.activeElement !== inputEl) {
+            inputEl.value = hasPaidEntered ? String(rawPaid) : "";
+          }
+        }
+        const fillBtn = row.querySelector(".inst-fill-btn");
+        if (fillBtn) fillBtn.dataset.due = String(adjustedDue);
+      }
+    } else {
+      const row = document.createElement("div");
+      row.className = `inst-row ${isCleared ? "inst-row--cleared" : ""}`;
+      row.dataset.index = String(index);
+
+      row.innerHTML = `
+        <div class="inst-row__meta">
+          <div class="inst-row__titleGroup">
+            <span class="inst-row__name">${namePrefix} Inst.</span>
+            <span class="inst-row__rate">${formatPercent(rate * 100)}%</span>
+          </div>
+          <span class="inst-row__due">${milestone.dateFormatted ? `Due: ${milestone.dateFormatted}` : ""}</span>
+        </div>
+
+        <div class="inst-row__tracker">
+          <div class="inst-row__inputWrap" title="Enter actual amount paid for this installment">
+            <span class="inst-row__currency">\u09F3</span>
+            <input
+              type="number"
+              id="instPaidInput_${index}"
+              class="inst-paid-input"
+              data-index="${index}"
+              inputmode="decimal"
+              min="0"
+              step="100"
+              placeholder="${roundToTwo(adjustedDue)}"
+              value="${hasPaidEntered ? rawPaid : ""}"
+              aria-label="Paid for ${namePrefix} installment"
+            />
+          </div>
+          <button
+            type="button"
+            class="inst-fill-btn"
+            data-index="${index}"
+            data-due="${adjustedDue}"
+            title="Mark as paid in full"
+          >
+            Full
+          </button>
+        </div>
+
+        <div class="inst-row__amountGroup">
+          <span class="inst-row__amount ${scheduledDue === 0 && adjustedDue === 0 ? "inst-row__amount--waived" : ""}">
+            ${formatBDT(adjustedDue)}
+          </span>
+          <div class="inst-row__statusWrap">
+            ${statusHtml}
+          </div>
+        </div>
+      `;
+      resultFields.installmentRows.appendChild(row);
+    }
   });
+
+  if (!canUpdateInPlace) {
+    const inputs = resultFields.installmentRows.querySelectorAll(
+      ".inst-paid-input",
+    );
+    inputs.forEach((input) => {
+      input.addEventListener("input", onInstallmentPaidInput);
+      input.addEventListener("change", onInstallmentPaidInput);
+    });
+
+    const fillButtons =
+      resultFields.installmentRows.querySelectorAll(".inst-fill-btn");
+    fillButtons.forEach((btn) => {
+      btn.addEventListener("click", onInstallmentPaidFullClick);
+    });
+  }
+
+  // Update Ledger Bar
+  if (instLedgerBar) {
+    if (hasAnyPayment || totalActuallyPaid > 0) {
+      instLedgerBar.hidden = false;
+      const netPayable = lastCalculationState
+        ? lastCalculationState.remainingPayable
+        : 0;
+      const totalRemainingDue = Math.max(
+        0,
+        roundToTwo(netPayable - totalActuallyPaid),
+      );
+
+      if (instPaidSoFar)
+        instPaidSoFar.textContent = formatBDT(totalActuallyPaid);
+      if (instRemainingDue)
+        instRemainingDue.textContent = formatBDT(totalRemainingDue);
+      if (instAllClearedBadge) {
+        instAllClearedBadge.hidden = !(allCleared && hasAnyPayment);
+      }
+    } else {
+      instLedgerBar.hidden = true;
+    }
+  }
 }
 
 function setPlaceholderResults() {
@@ -691,6 +1157,10 @@ function setPlaceholderResults() {
     animatedValues.delete(fieldKey);
   });
 
+  if (resultFields.totalWithoutDiscountRow)
+    resultFields.totalWithoutDiscountRow.hidden = true;
+  if (resultFields.discountSummaryRow)
+    resultFields.discountSummaryRow.hidden = true;
   if (resultFields.labFeeSummaryRow)
     resultFields.labFeeSummaryRow.hidden = true;
   if (resultFields.extrasSummaryRow)
@@ -708,7 +1178,7 @@ function setPlaceholderResults() {
     waiverThresholdAlert.hidden = true;
   }
 
-  renderInstallmentRows([], true);
+  renderInstallmentRows(null, true);
   setAppliedDiscountBadge("none", 0);
   lastCalculationState = null;
 }
@@ -793,12 +1263,43 @@ function readAndValidateInputs() {
 // ─── Course Drop Calculation ──────────────────────────────────────────────────
 function getDropRefundCalculation() {
   if (!dropCredits || !dropCourseType || !dropWindow) {
-    return { credits: 0, category: "new", windowPercent: 100, courseFee: 0, refundAmount: 0, retainedAmount: 0 };
+    return {
+      credits: 0,
+      category: "new",
+      windowPercent: 100,
+      courseFee: 0,
+      refundAmount: 0,
+      retainedAmount: 0,
+      isAuto: false,
+    };
   }
 
   const credits = Math.max(0, parseOrZero(dropCredits.value));
   const category = dropCourseType.value;
-  const windowPercent = Number(dropWindow.value);
+  const rawWindow = dropWindow.value;
+  const isAuto = rawWindow === "auto";
+
+  let windowPercent = 100;
+  if (isAuto) {
+    const today = new Date();
+    const yyyy = today.getFullYear();
+    const mm = String(today.getMonth() + 1).padStart(2, "0");
+    const dd = String(today.getDate()).padStart(2, "0");
+    const todayStr = `${yyyy}-${mm}-${dd}`;
+
+    const r100 = calculatorSettings.refund100Date || "2026-10-31";
+    const r50 = calculatorSettings.refund50Date || "2026-11-09";
+
+    if (todayStr <= r100) {
+      windowPercent = 100;
+    } else if (todayStr <= r50) {
+      windowPercent = 50;
+    } else {
+      windowPercent = 0;
+    }
+  } else {
+    windowPercent = Number(rawWindow);
+  }
 
   let creditRate = calculatorSettings.perCreditFee;
   if (category === "retakeFirst") {
@@ -814,14 +1315,24 @@ function getDropRefundCalculation() {
   const refundAmount = roundToTwo(courseFee * (windowPercent / 100));
   const retainedAmount = roundToTwo(courseFee - refundAmount);
 
-  return { credits, category, windowPercent, courseFee, refundAmount, retainedAmount };
+  return {
+    credits,
+    category,
+    windowPercent,
+    courseFee,
+    refundAmount,
+    retainedAmount,
+    isAuto,
+  };
 }
 
 function updateDropToolCalculation() {
-  const { credits, windowPercent, refundAmount, retainedAmount } = getDropRefundCalculation();
+  const { credits, windowPercent, refundAmount, retainedAmount, isAuto } =
+    getDropRefundCalculation();
 
   if (dropRefundValue) dropRefundValue.textContent = formatBDT(refundAmount);
-  if (dropRetainedValue) dropRetainedValue.textContent = formatBDT(retainedAmount);
+  if (dropRetainedValue)
+    dropRetainedValue.textContent = formatBDT(retainedAmount);
 
   if (dropAppliedPreview) {
     dropAppliedPreview.textContent = `-${formatBDT(refundAmount)}`;
@@ -829,13 +1340,16 @@ function updateDropToolCalculation() {
 
   if (dropPolicyNote) {
     const isPharm = calculatorSettings.program === "pharmacy";
+    const autoPrefix = isAuto ? "Auto-detected based on today's date: " : "";
     if (windowPercent === 100) {
-      dropPolicyNote.textContent = `100% adjustable credit refund as per official UIU Calendar (Drop deadline: ${formatMilestoneDate(calculatorSettings.refund100Date)}).`;
+      dropPolicyNote.textContent = `${autoPrefix}100% adjustable credit refund as per official UIU Calendar (Drop deadline: ${formatMilestoneDate(calculatorSettings.refund100Date)}).`;
     } else if (windowPercent === 50) {
-      const termWithdrawal = isPharm ? "Course withdrawal cutoff" : "Withdrawal deadline ('W' grade)";
-      dropPolicyNote.textContent = `50% adjustable refund with 'W' grade on transcript as per UIU Calendar (${termWithdrawal}: ${formatMilestoneDate(calculatorSettings.refund50Date)}).`;
+      const termWithdrawal = isPharm
+        ? "Course withdrawal cutoff"
+        : "Withdrawal deadline ('W' grade)";
+      dropPolicyNote.textContent = `${autoPrefix}50% adjustable refund with 'W' grade on transcript as per UIU Calendar (${termWithdrawal}: ${formatMilestoneDate(calculatorSettings.refund50Date)}).`;
     } else {
-      dropPolicyNote.textContent = `0% refund. Courses dropped after ${formatMilestoneDate(calculatorSettings.refund50Date)} are strictly non-refundable per UIU policy.`;
+      dropPolicyNote.textContent = `${autoPrefix}0% refund. Courses dropped after ${formatMilestoneDate(calculatorSettings.refund50Date)} are strictly non-refundable per UIU policy.`;
     }
   }
 }
@@ -844,6 +1358,13 @@ function updateDropWindowOptions(dropWindows) {
   if (!dropWindow || !Array.isArray(dropWindows)) return;
   const currentVal = dropWindow.value;
   dropWindow.innerHTML = "";
+
+  const autoOpt = document.createElement("option");
+  autoOpt.value = "auto";
+  autoOpt.textContent = "Dropped Today (Auto-Detect)";
+  if (currentVal === "auto" || !currentVal) autoOpt.selected = true;
+  dropWindow.appendChild(autoOpt);
+
   dropWindows.forEach((w) => {
     const opt = document.createElement("option");
     opt.value = w.value;
@@ -941,15 +1462,73 @@ function renderCalculatedResults(values, animate = true) {
   // Remaining Balance after Paid at Registration deduction
   const remainingPayable = Math.max(0, netTotalPayable - paidRegistration);
 
-  // Installment Split Calculation:
-  // If down payment is made, remaining balance is split across installments.
-  // Otherwise, net total payable is split.
-  const installmentBase =
-    paidRegistration > 0 ? remainingPayable : netTotalPayable;
-  const installments = splitInstallmentAmounts(
-    installmentBase,
+  // UIU Installment Schedule Calculation:
+  // 1. Gross Installment Base is total without discount minus deposit paid at registration.
+  const grossInstallmentBase = Math.max(
+    0,
+    totalWithoutDiscount - paidRegistration,
+  );
+
+  // 2. Split into nominal milestone shares (e.g. 40%, 30%, 30% for trimester; 25%x4 for pharmacy)
+  const nominalInstallments = splitInstallmentAmounts(
+    grossInstallmentBase,
     calculatorSettings.installmentRates,
   );
+
+  // 3. UIU Rule: Waiver/scholarship discount & drop refund credit cut from 1st installment first,
+  // with any excess cascading to the 2nd and 3rd installments.
+  const totalDeductions = roundToTwo(discountAmount + dropRefundCredit);
+  let remDeduction = totalDeductions;
+  const scheduledInstallments = [];
+
+  for (let i = 0; i < nominalInstallments.length; i++) {
+    const nom = nominalInstallments[i];
+    const cut = Math.min(nom, remDeduction);
+    scheduledInstallments.push(roundToTwo(nom - cut));
+    remDeduction = roundToTwo(remDeduction - cut);
+  }
+
+  // 4. Cumulative milestone targets (e.g. 40% target at Inst 1, 70% target at Inst 2, 100% target at Inst 3)
+  const cumulativeTargets = [];
+  let cum = 0;
+  for (let i = 0; i < scheduledInstallments.length; i++) {
+    cum = roundToTwo(cum + scheduledInstallments[i]);
+    cumulativeTargets.push(cum);
+  }
+
+  // 5. Dynamic adjustment based on actual amounts paid by student
+  const adjustedInstallments = [];
+  let cumPaidBefore = 0;
+  let hasAnyPriorPaid = false;
+
+  for (let i = 0; i < scheduledInstallments.length; i++) {
+    let due = scheduledInstallments[i];
+    if (i === 0) {
+      due = scheduledInstallments[0];
+    } else {
+      if (hasAnyPriorPaid) {
+        due = Math.max(0, roundToTwo(cumulativeTargets[i] - cumPaidBefore));
+      } else {
+        due = scheduledInstallments[i];
+      }
+    }
+    adjustedInstallments.push(due);
+
+    const paidVal = actualPaidInstallments[i];
+    if (paidVal !== undefined && paidVal !== null && paidVal !== "") {
+      hasAnyPriorPaid = true;
+      cumPaidBefore = roundToTwo(cumPaidBefore + Number(paidVal));
+    } else {
+      cumPaidBefore = roundToTwo(cumPaidBefore + due);
+    }
+  }
+
+  const scheduleData = {
+    nominal: nominalInstallments,
+    scheduled: scheduledInstallments,
+    adjusted: adjustedInstallments,
+    cumulativeTargets,
+  };
 
   // Save full calculation state for Voucher / WhatsApp export
   lastCalculationState = {
@@ -983,15 +1562,42 @@ function renderCalculatedResults(values, animate = true) {
     netTotalPayable,
     paidRegistration,
     remainingPayable,
-    installments,
+    nominalInstallments,
+    scheduledInstallments,
+    adjustedInstallments,
+    installments: adjustedInstallments,
+    scheduleData,
   };
 
   // Render Core Currency Totals
   setCurrencyText("grossTotal", grossTotal, animate);
   setCurrencyText("semesterFee", semesterFee, animate);
-  setCurrencyText("totalWithoutDiscount", totalWithoutDiscount, animate);
-  setCurrencyText("discountAmount", discountAmount, animate);
   setCurrencyText("netTotalPayable", netTotalPayable, animate);
+
+  // Total Without Discount Row (Show only if adjustments exist)
+  if (resultFields.totalWithoutDiscountRow) {
+    const hasAdjustments =
+      discountAmount > 0 ||
+      extrasTotal > 0 ||
+      prevDue !== 0 ||
+      dropRefundCredit > 0;
+    if (hasAdjustments) {
+      resultFields.totalWithoutDiscountRow.hidden = false;
+      setCurrencyText("totalWithoutDiscount", totalWithoutDiscount, animate);
+    } else {
+      resultFields.totalWithoutDiscountRow.hidden = true;
+    }
+  }
+
+  // Discount Amount Row (Show only if discountAmount > 0)
+  if (resultFields.discountSummaryRow) {
+    if (discountAmount > 0) {
+      resultFields.discountSummaryRow.hidden = false;
+      setCurrencyText("discountAmount", discountAmount, animate);
+    } else {
+      resultFields.discountSummaryRow.hidden = true;
+    }
+  }
 
   // Mandatory Lab Fee Row Visibility
   if (resultFields.labFeeSummaryRow) {
@@ -1051,7 +1657,7 @@ function renderCalculatedResults(values, animate = true) {
   }
 
   // Render Installment Rows
-  renderInstallmentRows(installments);
+  renderInstallmentRows(scheduleData);
 
   // Set Applied Discount Badge
   setAppliedDiscountBadge(
@@ -1119,6 +1725,21 @@ function initializeStaticTexts() {
   }
   if (extraFeeLabels.lateInst) {
     extraFeeLabels.lateInst.textContent = `+${formatBDT(calculatorSettings.lateFineInstallment)}`;
+  }
+
+  const campusServicesTitle = document.getElementById("campusServicesTitle");
+  if (campusServicesTitle) {
+    campusServicesTitle.textContent = `Campus Services & Fines (UIU ${calculatorSettings.trimesterTitle})`;
+  }
+
+  const dropWindowLabel = document.getElementById("dropWindowLabel");
+  if (dropWindowLabel) {
+    dropWindowLabel.textContent = `Drop Window (UIU ${calculatorSettings.trimesterTitle})`;
+  }
+
+  const voucherTerm = document.getElementById("voucherTerm");
+  if (voucherTerm) {
+    voucherTerm.textContent = `${isPharm ? "Academic Semester" : "Academic Trimester"}: ${calculatorSettings.trimesterTitle}`;
   }
 }
 
@@ -1331,6 +1952,22 @@ function loadStateFromURL() {
     dropCredits.value = params.get("drop");
     hasParam = true;
   }
+  if (params.has("dw") && dropWindow) {
+    dropWindow.value = params.get("dw");
+    hasParam = true;
+  }
+
+  // Restore paid installment amounts
+  actualPaidInstallments = {};
+  for (let i = 0; i < MAX_INSTALLMENTS; i++) {
+    if (params.has(`p${i}`)) {
+      const v = Number(params.get(`p${i}`));
+      if (!isNaN(v) && v >= 0) {
+        actualPaidInstallments[i] = v;
+        hasParam = true;
+      }
+    }
+  }
 
   return hasParam;
 }
@@ -1364,6 +2001,20 @@ function syncStateToURL() {
   if (extraCheckboxes.lateInst?.checked) params.set("linst", "1");
   if (extra && Number(extra) > 0) params.set("extra", extra);
 
+  if (dropCredits && Number(dropCredits.value) > 0) {
+    params.set("drop", dropCredits.value);
+  }
+  if (dropWindow && dropWindow.value !== "auto") {
+    params.set("dw", dropWindow.value);
+  }
+
+  Object.keys(actualPaidInstallments).forEach((key) => {
+    const val = actualPaidInstallments[key];
+    if (val > 0) {
+      params.set(`p${key}`, String(val));
+    }
+  });
+
   const query = params.toString();
   const newPath =
     window.location.pathname + (query.length > 0 ? `?${query}` : "");
@@ -1385,6 +2036,11 @@ function resetCalculatorForm() {
   fields.prevDue.value = "";
   fields.extraCustom.value = "";
 
+  actualPaidInstallments = {};
+  if (dropCredits) dropCredits.value = "0";
+  if (dropWindow) dropWindow.value = "auto";
+  if (applyDropRefund) applyDropRefund.checked = true;
+
   Object.values(extraCheckboxes).forEach((cb) => {
     if (cb) cb.checked = false;
   });
@@ -1399,15 +2055,7 @@ function resetCalculatorForm() {
   showToast("Calculator reset to defaults.");
 }
 
-// ─── Course Drop Tool Accordion & Listeners ───────────────────────────────────
-if (dropToolToggle && dropToolBody) {
-  dropToolToggle.addEventListener("click", () => {
-    const isExpanded = dropToolToggle.getAttribute("aria-expanded") === "true";
-    dropToolToggle.setAttribute("aria-expanded", String(!isExpanded));
-    dropToolBody.hidden = isExpanded;
-  });
-}
-
+// ─── Course Drop Tool Listeners ───────────────────────────────────────────────
 [dropCredits, dropCourseType, dropWindow].forEach((input) => {
   if (input) {
     input.addEventListener("input", () => calculateAndRender());
@@ -1480,15 +2128,26 @@ function generateWhatsAppSummary() {
     text += `*Remaining Balance:* ${formatBDT(s.remainingPayable)}\n`;
   }
 
-  text += `\n*Installment Schedule (UIU Calendar):*\n`;
+  text += `\n*Installment Schedule (UIU Calendar Milestones):*\n`;
   const ordinals = ["1st", "2nd", "3rd", "4th", "5th", "6th"];
+  const adjusted = s.adjustedInstallments || s.installments || [];
   calculatorSettings.installmentRates.forEach((rate, i) => {
-    const amount = s.installments[i] ?? 0;
+    const amount = adjusted[i] ?? (s.installments[i] ?? 0);
     const milestone = getInstallmentMilestoneInfo(i);
     const dateStr = milestone.dateFormatted
       ? ` (Due: ${milestone.dateFormatted})`
       : "";
-    text += `• ${ordinals[i] || `Inst ${i + 1}`} (${formatPercent(rate * 100)}%): ${formatBDT(amount)}${dateStr}\n`;
+    let paidNote = "";
+    const rawPaid = actualPaidInstallments[i];
+    if (rawPaid !== undefined && rawPaid !== null && rawPaid !== "") {
+      const p = Number(rawPaid) || 0;
+      if (p >= amount) {
+        paidNote = ` [Paid: ${formatBDT(p)} \u2713]`;
+      } else {
+        paidNote = ` [Paid: ${formatBDT(p)}, Due: ${formatBDT(amount - p)}]`;
+      }
+    }
+    text += `• ${ordinals[i] || `Inst ${i + 1}`} (${formatPercent(rate * 100)}%): ${formatBDT(amount)}${dateStr}${paidNote}\n`;
   });
 
   text += `\nShared via UIU Installment Calculator:\n${window.location.href}`;
@@ -1687,18 +2346,30 @@ function populateFeeVoucher() {
     voucherScheduleBody.innerHTML = "";
     const ordinals = ["1st", "2nd", "3rd", "4th", "5th", "6th"];
 
+    const adjusted = s.adjustedInstallments || s.installments || [];
     calculatorSettings.installmentRates.forEach((rate, i) => {
-      const amount = s.installments[i] ?? 0;
+      const amount = adjusted[i] ?? (s.installments[i] ?? 0);
       const milestone = getInstallmentMilestoneInfo(i);
+      const rawPaid = actualPaidInstallments[i];
+      let paidHtml = "";
+      if (rawPaid !== undefined && rawPaid !== null && rawPaid !== "") {
+        const p = Number(rawPaid) || 0;
+        paidHtml = `<br><span style="font-size:0.82em; color:var(--text); opacity:0.85;">Paid: ${formatBDT(p)}</span>`;
+      }
       const tr = document.createElement("tr");
       tr.innerHTML = `
-        <td><strong>${ordinals[i] || `Installment ${i + 1}`}</strong></td>
-        <td>${milestone.dateFormatted || "As announced"} <span style="font-size:0.85em; opacity:0.8">(${milestone.name})</span></td>
+        <td><strong>${ordinals[i] || `Installment ${i + 1}`}</strong>${paidHtml}</td>
+        <td>${milestone.dateFormatted || "As announced"}</td>
         <td>${formatPercent(rate * 100)}%</td>
         <td class="text-right"><strong>${formatBDT(amount)}</strong></td>
       `;
       voucherScheduleBody.appendChild(tr);
     });
+  }
+
+  const voucherDropNote = document.getElementById("voucherDropNote");
+  if (voucherDropNote) {
+    voucherDropNote.textContent = `Dropping courses is subject to UIU Academic Calendar adjustment cutoffs (100% refund by ${formatMilestoneDate(calculatorSettings.refund100Date)}; 50% refund by ${formatMilestoneDate(calculatorSettings.refund50Date)}).`;
   }
 }
 
@@ -1724,6 +2395,228 @@ if (voucherBackdrop) voucherBackdrop.addEventListener("click", closeFeeVoucher);
 if (voucherPrint) {
   voucherPrint.addEventListener("click", () => {
     window.print();
+  });
+}
+
+// ─── User Manual Modal & Dynamic Rate Scenarios ──────────────────────────────
+function populateUserManual() {
+  const perCredit = Number(calculatorSettings.perCreditFee) || 5525;
+  const semesterFee = Number(calculatorSettings.semesterFee) || 6500;
+  const labFee = Number(calculatorSettings.labFee) || 0;
+  const deposit = Number(calculatorSettings.defaultPaidRegistration) || 20000;
+  const minCredits = Number(calculatorSettings.minCreditsWaiver) || 9;
+
+  // 1. Overview callout & badges
+  const configuredRateEl = document.getElementById("manualConfiguredRateText");
+  if (configuredRateEl) {
+    configuredRateEl.textContent = formatBDT(perCredit);
+  }
+
+  const scenarioRateBadge = document.getElementById("manualScenarioRateBadge");
+  if (scenarioRateBadge) {
+    scenarioRateBadge.textContent = `${formatBDT(perCredit)} / credit`;
+  }
+
+  // 2. Program Overview Cards
+  const programsGrid = document.getElementById("manualOverviewPrograms");
+  if (programsGrid) {
+    const isPharm = calculatorSettings.program === "pharmacy";
+    const instBreakdown = calculatorSettings.installmentRates
+      .map((r) => `${formatPercent(r * 100)}%`)
+      .join(", ");
+
+    programsGrid.innerHTML = `
+      <div class="manual-card">
+        <div class="manual-card__head">
+          <span class="manual-card__title">Undergraduate Trimester (CSE, BBA, EEE, Civil, DS)</span>
+          <span class="manual-card__badge">
+            ${!isPharm ? "Active Program" : "Trimester System"}
+          </span>
+        </div>
+        <p>&bull; <strong>Configured Per-Credit Rate:</strong> ${formatBDT(perCredit)}</p>
+        <p>&bull; <strong>Trimester Fee:</strong> ${formatBDT(semesterFee)}</p>
+        <p>&bull; <strong>Installments:</strong> ${calculatorSettings.installmentCount} installments (${instBreakdown})</p>
+        <p>&bull; <strong>Waiver Eligibility Threshold:</strong> Minimum ${minCredits} fresh credits</p>
+      </div>
+
+      <div class="manual-card">
+        <div class="manual-card__head">
+          <span class="manual-card__title">Bachelor of Pharmacy (B.Pharm)</span>
+          <span class="manual-card__badge">
+            ${isPharm ? "Active Program" : "Semester System"}
+          </span>
+        </div>
+        <p>&bull; <strong>Per-Credit Rate:</strong> ${formatBDT(PROGRAM_PROFILES.pharmacy.perCreditFee)}</p>
+        <p>&bull; <strong>Semester Fee:</strong> ${formatBDT(PROGRAM_PROFILES.pharmacy.semesterFee)} | <strong>Mandatory Lab:</strong> ${formatBDT(PROGRAM_PROFILES.pharmacy.labFee)}</p>
+        <p>&bull; <strong>Installments:</strong> 4 installments (25% each)</p>
+        <p>&bull; <em>Tip: Switch to B.Pharm mode at the top left to load pharmacy milestone dates &amp; lab fees.</em></p>
+      </div>
+    `;
+  }
+
+  // 3. Populate Dynamic Step-by-Step Sample Scenarios
+  const scenariosGrid = document.getElementById("manualScenariosGrid");
+  if (scenariosGrid) {
+    // Scenario 1: 13 Credits + 25% Waiver
+    const s1Credits = 13;
+    const s1CourseFee = s1Credits * perCredit;
+    const s1Total = s1CourseFee + semesterFee + labFee;
+    const s1Waiver = s1CourseFee * 0.25;
+    const s1Net = s1Total - s1Waiver;
+    const s1Nominal1 = s1Total * 0.40;
+    const s1Nominal2 = s1Total * 0.30;
+    const s1Nominal3 = s1Total * 0.30;
+    const s1Inst1 = Math.max(0, s1Nominal1 - s1Waiver);
+    const s1Spillover = Math.max(0, s1Waiver - s1Nominal1);
+    const s1Inst2 = Math.max(0, s1Nominal2 - s1Spillover);
+    const s1Inst3 = s1Nominal3;
+
+    // Scenario 2: FYDP / Capstone (9 Fresh with 50% waiver + 3 Non-waiver Capstone credits)
+    const s2FreshCredits = 9;
+    const s2CapstoneCredits = 3;
+    const s2FreshFee = s2FreshCredits * perCredit;
+    const s2CapstoneFee = s2CapstoneCredits * perCredit;
+    const s2Total = s2FreshFee + s2CapstoneFee + semesterFee + labFee;
+    const s2Waiver = s2FreshFee * 0.50; // Waiver applies strictly to fresh credits!
+    const s2Net = s2Total - s2Waiver;
+    const s2Nominal1 = s2Total * 0.40;
+    const s2Nominal2 = s2Total * 0.30;
+    const s2Nominal3 = s2Total * 0.30;
+    const s2Inst1 = Math.max(0, s2Nominal1 - s2Waiver);
+    const s2Spillover = Math.max(0, s2Waiver - s2Nominal1);
+    const s2Inst2 = Math.max(0, s2Nominal2 - s2Spillover);
+    const s2Inst3 = s2Nominal3;
+
+    // Scenario 3: Deposit Paid at Registration
+    const s3PaidReg = deposit > 0 ? deposit : 20000;
+    const s3Credits = 12;
+    const s3Gross = s3Credits * perCredit + semesterFee + labFee;
+    const s3Remaining = Math.max(0, s3Gross - s3PaidReg);
+    const s3Inst1 = s3Remaining * 0.40;
+    const s3Inst2 = s3Remaining * 0.30;
+    const s3Inst3 = s3Remaining * 0.30;
+
+    // Scenario 4: Overpayment in 1st Installment (Tracker Adjustment)
+    const s4PaidExtra = 2000;
+    const s4PaidActual = s1Inst1 + s4PaidExtra;
+    const s4AdjustedInst2 = Math.max(0, s1Inst2 - s4PaidExtra);
+
+    scenariosGrid.innerHTML = `
+      <!-- Scenario 1 -->
+      <div class="manual-scenario-card">
+        <div class="manual-scenario-card__header">
+          <span class="manual-scenario-card__title">Scenario 1: 13 Credits + 25% Waiver</span>
+          <span class="manual-card__badge">Live Rates</span>
+        </div>
+        <div class="manual-scenario-card__stat"><span>Course Fee (13 cr &times; ${formatBDT(perCredit)}):</span> <strong>${formatBDT(s1CourseFee)}</strong></div>
+        <div class="manual-scenario-card__stat"><span>Trimester Fee:</span> <strong>${formatBDT(semesterFee)}</strong></div>
+        ${labFee > 0 ? `<div class="manual-scenario-card__stat"><span>Mandatory Lab Fee:</span> <strong>${formatBDT(labFee)}</strong></div>` : ""}
+        <div class="manual-scenario-card__stat"><span>Gross Total:</span> <strong>${formatBDT(s1Total)}</strong></div>
+        <div class="manual-scenario-card__stat"><span>25% Waiver Discount:</span> <strong class="text-good">-${formatBDT(s1Waiver)}</strong></div>
+        <div class="manual-scenario-card__stat"><span>Net Payable:</span> <strong>${formatBDT(s1Net)}</strong></div>
+        <div class="manual-scenario-card__highlight">
+          &bull; 1st Inst (40% gross - waiver): <strong>${formatBDT(s1Inst1)}</strong><br>
+          &bull; 2nd Inst (30% gross): <strong>${formatBDT(s1Inst2)}</strong><br>
+          &bull; 3rd Inst (30% gross): <strong>${formatBDT(s1Inst3)}</strong>
+        </div>
+      </div>
+
+      <!-- Scenario 2 -->
+      <div class="manual-scenario-card">
+        <div class="manual-scenario-card__header">
+          <span class="manual-scenario-card__title">Scenario 2: FYDP / Capstone (Non-Waiver)</span>
+          <span class="manual-card__badge">Final Year Project</span>
+        </div>
+        <p style="font-size:0.77rem; margin:0; color:var(--muted)">9 Fresh credits (50% waiver) + 3 Non-waiver Capstone credits</p>
+        <div class="manual-scenario-card__stat"><span>Fresh Tuition (9 cr):</span> <strong>${formatBDT(s2FreshFee)}</strong></div>
+        <div class="manual-scenario-card__stat"><span>Capstone (3 cr, full 100% pay):</span> <strong>${formatBDT(s2CapstoneFee)}</strong></div>
+        <div class="manual-scenario-card__stat"><span>Trimester Fee:</span> <strong>${formatBDT(semesterFee)}</strong></div>
+        <div class="manual-scenario-card__stat"><span>50% Waiver (Fresh only):</span> <strong class="text-good">-${formatBDT(s2Waiver)}</strong></div>
+        <div class="manual-scenario-card__stat"><span>Net Payable:</span> <strong>${formatBDT(s2Net)}</strong></div>
+        <div class="manual-scenario-card__highlight">
+          &bull; Total Bill: ${formatBDT(s2Total)}<br>
+          &bull; 1st Inst (40% - waiver): <strong>${formatBDT(s2Inst1)}</strong><br>
+          &bull; 2nd Inst (30%): <strong>${formatBDT(s2Inst2)}</strong><br>
+          &bull; 3rd Inst (30%): <strong>${formatBDT(s2Inst3)}</strong>
+        </div>
+      </div>
+
+      <!-- Scenario 3 -->
+      <div class="manual-scenario-card">
+        <div class="manual-scenario-card__header">
+          <span class="manual-scenario-card__title">Scenario 3: Deposit Paid at Registration</span>
+          <span class="manual-card__badge">Down Payment</span>
+        </div>
+        <div class="manual-scenario-card__stat"><span>Total Tuition (12 cr) + Term Fee:</span> <strong>${formatBDT(s3Gross)}</strong></div>
+        <div class="manual-scenario-card__stat"><span>Paid at Registration:</span> <strong class="text-good">-${formatBDT(s3PaidReg)}</strong></div>
+        <div class="manual-scenario-card__stat"><span>Remaining Balance:</span> <strong>${formatBDT(s3Remaining)}</strong></div>
+        <div class="manual-scenario-card__highlight">
+          &bull; 1st Inst (40% of remaining): <strong>${formatBDT(s3Inst1)}</strong><br>
+          &bull; 2nd Inst (30% of remaining): <strong>${formatBDT(s3Inst2)}</strong><br>
+          &bull; 3rd Inst (30% of remaining): <strong>${formatBDT(s3Inst3)}</strong>
+        </div>
+      </div>
+
+      <!-- Scenario 4 -->
+      <div class="manual-scenario-card">
+        <div class="manual-scenario-card__header">
+          <span class="manual-scenario-card__title">Scenario 4: Overpayment in 1st Installment</span>
+          <span class="manual-card__badge">Tracker Auto-Adjust</span>
+        </div>
+        <div class="manual-scenario-card__stat"><span>1st Inst Scheduled:</span> <strong>${formatBDT(s1Inst1)}</strong></div>
+        <div class="manual-scenario-card__stat"><span>Student Actually Paid:</span> <strong>${formatBDT(s4PaidActual)}</strong></div>
+        <div class="manual-scenario-card__stat"><span>Surplus Carried to 2nd Inst:</span> <strong class="text-good">+${formatBDT(s4PaidExtra)}</strong></div>
+        <div class="manual-scenario-card__highlight">
+          &bull; 2nd Inst Scheduled was ${formatBDT(s1Inst2)}<br>
+          &bull; <strong>Adjusted 2nd Inst Due:</strong> ${formatBDT(s1Inst2)} - ${formatBDT(s4PaidExtra)} = <strong>${formatBDT(s4AdjustedInst2)}</strong>!
+        </div>
+      </div>
+    `;
+  }
+
+  // 4. Hook up the "Open Settings" button inside the manual
+  const manualOpenSettingsBtn = document.getElementById("manualOpenSettingsBtn");
+  if (manualOpenSettingsBtn) {
+    manualOpenSettingsBtn.onclick = () => {
+      closeManualModal();
+      openSettingsModal();
+    };
+  }
+}
+
+function openManualModal() {
+  if (manualModal) {
+    populateUserManual();
+    manualModal.hidden = false;
+    document.body.classList.add("modal-open");
+    if (manualBody) {
+      manualBody.scrollTop = 0;
+    }
+  }
+}
+
+function closeManualModal() {
+  if (manualModal) {
+    manualModal.hidden = true;
+    document.body.classList.remove("modal-open");
+  }
+}
+
+if (headerManualBtn) headerManualBtn.addEventListener("click", openManualModal);
+if (manualClose) manualClose.addEventListener("click", closeManualModal);
+if (manualBackdrop) manualBackdrop.addEventListener("click", closeManualModal);
+
+if (manualNavBtns && manualNavBtns.length > 0) {
+  manualNavBtns.forEach((btn) => {
+    btn.addEventListener("click", () => {
+      manualNavBtns.forEach((b) => b.classList.remove("is-active"));
+      btn.classList.add("is-active");
+      const targetId = btn.dataset.target;
+      const targetEl = document.getElementById(targetId);
+      if (targetEl) {
+        targetEl.scrollIntoView({ behavior: "smooth", block: "start" });
+      }
+    });
   });
 }
 
@@ -2066,6 +2959,7 @@ function validateSettingsCandidate(candidate) {
     lateFineInstallment: roundToTwo(lateFineInstallment),
     lateRegistrationFine: roundToTwo(lateRegistrationFine),
     trimesterTitle,
+    lastCalendarTermId: candidate.lastCalendarTermId || "",
     refund100Date,
     refund50Date,
     dueDateInst1,
@@ -2076,22 +2970,41 @@ function validateSettingsCandidate(candidate) {
 }
 
 function loadStoredSettings() {
+  let settings = null;
   try {
     const raw = localStorage.getItem(SETTINGS_STORAGE_KEY);
-    if (!raw) {
-      return cloneSettings(DEFAULT_SETTINGS);
-    }
-
-    const parsed = JSON.parse(raw);
-    const validated = validateSettingsCandidate(parsed);
-    if (validated) {
-      return validated;
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      const validated = validateSettingsCandidate(parsed);
+      if (validated) {
+        settings = validated;
+      }
     }
   } catch {
     // Fall back to defaults.
   }
 
-  return cloneSettings(DEFAULT_SETTINGS);
+  if (!settings) {
+    settings = cloneSettings(DEFAULT_SETTINGS);
+  }
+
+  // Automatic Academic Calendar Sync:
+  // Before the new trimester's official startDate arrives, dates stay on the current term.
+  // When a new trimester/semester begins (today >= startDate), dates update automatically!
+  const activeProfile = getProgramProfile(settings.program || "trimester");
+  if (settings.lastCalendarTermId !== activeProfile.termId) {
+    settings.lastCalendarTermId = activeProfile.termId;
+    settings.trimesterTitle = activeProfile.trimesterTitle;
+    settings.refund100Date = activeProfile.refund100Date;
+    settings.refund50Date = activeProfile.refund50Date;
+    settings.dueDateInst1 = activeProfile.dueDateInst1;
+    settings.dueDateInst2 = activeProfile.dueDateInst2;
+    settings.dueDateInst3 = activeProfile.dueDateInst3;
+    settings.dueDateInst4 = activeProfile.dueDateInst4;
+    persistSettings(settings);
+  }
+
+  return settings;
 }
 
 function persistSettings(settings) {
@@ -2113,6 +3026,7 @@ function applyCalculatorSettings(settings, options = {}) {
   initializeStaticTexts();
   applyStoredDiscountDefaults();
   calculateAndRender({ animate });
+  populateUserManual();
 }
 
 function collectSettingsFromForm() {
@@ -2435,6 +3349,9 @@ document.addEventListener("keydown", (event) => {
     if (voucherModal && !voucherModal.hidden) {
       closeFeeVoucher();
     }
+    if (manualModal && !manualModal.hidden) {
+      closeManualModal();
+    }
   }
 });
 
@@ -2476,3 +3393,4 @@ if (!loadedFromURL && calculatorSettings.defaultPaidRegistration > 0) {
 renderInstallmentRows([], true);
 calculateAndRender({ animate: false });
 updateDropToolCalculation();
+populateUserManual();

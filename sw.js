@@ -4,7 +4,7 @@
 // Bump CACHE_VERSION whenever you deploy updated app assets.
 // The activate handler will automatically delete all caches from older versions,
 // so users always get a fresh copy on their next visit.
-const CACHE_VERSION = 1;
+const CACHE_VERSION = 3;
 const CORE_CACHE    = `ic-core-v${CACHE_VERSION}`;
 const FONT_CACHE    = `ic-fonts-v${CACHE_VERSION}`;
 

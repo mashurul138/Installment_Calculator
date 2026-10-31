@@ -4,7 +4,7 @@
 // Bump CACHE_VERSION whenever you deploy updated app assets.
 // The activate handler will automatically delete all caches from older versions,
 // so users always get a fresh copy on their next visit.
-const CACHE_VERSION = 8;
+const CACHE_VERSION = 9;
 const CORE_CACHE    = `ic-core-v${CACHE_VERSION}`;
 const FONT_CACHE    = `ic-fonts-v${CACHE_VERSION}`;
 
@@ -17,6 +17,7 @@ const CORE_ASSETS = [
   './style.css',
   './script.js',
   './manifest.json',
+  './icon.svg',
 ];
 
 // ═══════════════════════════════ LIFECYCLE ════════════════════════════════════
@@ -24,14 +25,27 @@ const CORE_ASSETS = [
 /**
  * Install
  *
- * Pre-cache the entire app shell, then call skipWaiting() so this SW
- * activates immediately instead of waiting for existing tabs to close.
- * This ensures users always run the latest version after a reload.
+ * Pre-cache the entire app shell using Promise.allSettled so a single network
+ * hiccup or asset issue does not break the entire service worker installation.
+ * Then calls skipWaiting() so this SW activates immediately.
  */
 self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(CORE_CACHE)
-      .then((cache) => cache.addAll(CORE_ASSETS))
+      .then(async (cache) => {
+        await Promise.allSettled(
+          CORE_ASSETS.map(async (asset) => {
+            try {
+              const res = await fetch(asset, { cache: 'no-cache' });
+              if (res && res.ok) {
+                await cache.put(asset, res);
+              }
+            } catch (err) {
+              console.warn('[SW] Pre-cache skip:', asset, err);
+            }
+          }),
+        );
+      })
       .then(() => self.skipWaiting()),
   );
 });
@@ -70,26 +84,25 @@ self.addEventListener('fetch', (event) => {
   const url = new URL(request.url);
 
   // ── Google Fonts CSS (fonts.googleapis.com) ───────────────────────────────
-  // Use stale-while-revalidate so the stylesheet is served from cache
-  // instantly on every visit while being silently refreshed in the background.
+  // Use stale-while-revalidate with network timeout so font styles load instantly
+  // from cache or fall back seamlessly without stalling.
   if (url.hostname === 'fonts.googleapis.com') {
-    event.respondWith(staleWhileRevalidate(request, FONT_CACHE));
+    event.respondWith(staleWhileRevalidate(request, FONT_CACHE, 2500));
     return;
   }
 
   // ── Google Fonts binaries (fonts.gstatic.com) ─────────────────────────────
-  // Font files are content-addressed: the URL itself encodes the exact version,
-  // so a cached copy is always valid and never needs revalidation.
+  // Font files are immutable content-addressed binaries: cache-first with timeout.
   if (url.hostname === 'fonts.gstatic.com') {
-    event.respondWith(cacheFirst(request, FONT_CACHE));
+    event.respondWith(cacheFirst(request, FONT_CACHE, 3500));
     return;
   }
 
   // ── App shell — same origin ───────────────────────────────────────────────
-  // Stale-while-revalidate gives instant offline loads from the pre-cached
-  // shell while transparently refreshing assets whenever the network is up.
+  // Stale-while-revalidate gives instant (0ms) offline & online loads from
+  // the pre-cached shell while refreshing in the background with timeout.
   if (url.origin === self.location.origin) {
-    event.respondWith(staleWhileRevalidate(request, CORE_CACHE));
+    event.respondWith(staleWhileRevalidate(request, CORE_CACHE, 2500));
     return;
   }
 });
@@ -97,60 +110,97 @@ self.addEventListener('fetch', (event) => {
 // ═══════════════════════════════ STRATEGIES ═══════════════════════════════════
 
 /**
- * Stale-While-Revalidate
+ * Safe fetch with AbortController timeout.
+ * Prevents requests from hanging indefinitely on dead/throttled cellular connections.
+ *
+ * @param {Request} request
+ * @param {number}  timeoutMs
+ * @returns {Promise<Response|null>}
+ */
+async function fetchWithTimeout(request, timeoutMs = 2500) {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+
+  try {
+    const res = await fetch(request, { signal: controller.signal });
+    return res;
+  } catch (_err) {
+    return null;
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+/**
+ * Stale-While-Revalidate with Network Timeout
  *
  * 1. Open the cache and check for a stored response.
- * 2. Always fire a background network request to refresh the cache entry.
- * 3. If a cached response exists, return it immediately (fast path).
- * 4. If there is no cached response, await the network response instead.
- *
- * Result:
- *   - Offline  + cached  → instant load from cache              ✓
- *   - Online   + cached  → instant load from cache + BG refresh ✓
- *   - First visit / cache miss → network response (then cached) ✓
- *   - Offline  + no cache → graceful offline fallback           ✓
+ * 2. If a cached response exists, return it immediately (0ms fast path).
+ * 3. In the background (or foreground if cache miss), fire a timed network request.
+ * 4. On cache miss, await network request within timeout; fall back gracefully if offline.
  *
  * @param {Request} request
  * @param {string}  cacheName
+ * @param {number}  timeoutMs
  * @returns {Promise<Response>}
  */
-async function staleWhileRevalidate(request, cacheName) {
+async function staleWhileRevalidate(request, cacheName, timeoutMs = 2500) {
   const cache  = await caches.open(cacheName);
   const cached = await cache.match(request);
 
-  // Kick off a revalidation fetch regardless of whether we have a cached copy.
-  // When `cached` is returned immediately below, this promise keeps running
-  // silently in the background and updates the cache for the next visit.
-  const revalidation = fetch(request)
-    .then((res) => {
-      if (res?.ok) cache.put(request, res.clone());
+  // Background revalidation promise with timeout
+  const revalidationPromise = fetchWithTimeout(request, timeoutMs)
+    .then(async (res) => {
+      if (res && res.ok) {
+        await cache.put(request, res.clone());
+      }
       return res;
     })
     .catch(() => null);
 
-  // Serve the cached version instantly; fall back to the network on a miss.
-  return cached ?? (await revalidation) ?? offlineFallback(request);
+  // Instant response path (0ms wait time)
+  if (cached) {
+    return cached;
+  }
+
+  // First visit / cache miss path: await bounded network response
+  const networkRes = await revalidationPromise;
+  if (networkRes) {
+    return networkRes;
+  }
+
+  // Fallback if navigating to root or index.html
+  const url = new URL(request.url);
+  if (url.pathname.endsWith('/') || url.pathname.endsWith('/index.html')) {
+    const fallback = (await cache.match('./index.html')) || (await cache.match('./'));
+    if (fallback) return fallback;
+  }
+
+  return offlineFallback(request);
 }
 
 /**
- * Cache-First
+ * Cache-First with Network Timeout
  *
  * 1. Return the cached response immediately if one exists.
- * 2. On a cache miss, fetch from the network, store the result, and return it.
+ * 2. On a cache miss, fetch from the network with timeout, store the result, and return it.
  *
  * Ideal for immutable / content-addressed assets that never change once cached.
  *
  * @param {Request} request
  * @param {string}  cacheName
+ * @param {number}  timeoutMs
  * @returns {Promise<Response>}
  */
-async function cacheFirst(request, cacheName) {
+async function cacheFirst(request, cacheName, timeoutMs = 3500) {
   const cache  = await caches.open(cacheName);
   const cached = await cache.match(request);
   if (cached) return cached;
 
-  const res = await fetch(request).catch(() => null);
-  if (res?.ok) cache.put(request, res.clone());
+  const res = await fetchWithTimeout(request, timeoutMs);
+  if (res && res.ok) {
+    await cache.put(request, res.clone());
+  }
   return res ?? offlineFallback(request);
 }
 
@@ -160,8 +210,8 @@ async function cacheFirst(request, cacheName) {
  * Offline Fallback
  *
  * Returns a minimal synthetic Response when both the cache and the network
- * are unavailable.  For the core app shell this path should never be reached
- * (every asset is pre-cached on install).  For third-party resources (fonts)
+ * are unavailable. For the core app shell this path should never be reached
+ * (every asset is pre-cached on install). For third-party resources (fonts)
  * the browser will simply skip the asset and fall back to system fonts.
  *
  * @param {Request} request

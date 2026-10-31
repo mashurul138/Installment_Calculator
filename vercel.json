@@ -1,0 +1,10 @@
+{
+  "version": 2,
+  "redirects": [
+    {
+      "source": "/(.*)",
+      "destination": "https://mashurul138.github.io/Installment_Calculator/$1",
+      "permanent": true
+    }
+  ]
+}

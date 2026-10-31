@@ -944,7 +944,28 @@
                         <div class="summary-group">
                             <div class="summary-group__headRow">
                                 <p class="summary-group__title">Installment Schedule (UIU Calendar Milestones)</p>
+                                <div class="inst-mode-switcher" id="instModeSwitcher" role="group" aria-label="Installment Calculation Mode">
+                                    <button
+                                        type="button"
+                                        class="inst-mode-btn is-active"
+                                        id="instModeOfficialBtn"
+                                        data-mode="official"
+                                        title="Official UIU Rule: Waiver discount is deducted from 1st installment first"
+                                    >
+                                        Official UIU (Waiver First)
+                                    </button>
+                                    <button
+                                        type="button"
+                                        class="inst-mode-btn"
+                                        id="instModeRemainingBtn"
+                                        data-mode="remaining"
+                                        title="Split Remaining: Splits net remaining balance into 40% • 30% • 30% to prevent late fines"
+                                    >
+                                        Split Remaining (40/30/30)
+                                    </button>
+                                </div>
                             </div>
+                            <div class="inst-mode-note" id="instModeNote"></div>
                             <div
                                 class="summary-grid summary-grid--compact-inst"
                                 id="installmentRows"
@@ -1273,6 +1294,13 @@
 
                     <div class="settings-section">
                         <p class="settings-section__title">Installment Count & Rates</p>
+                        <label class="settings-field" for="settingInstallmentMode">
+                            <span>Default calculation mode</span>
+                            <select id="settingInstallmentMode" class="settings-select">
+                                <option value="official">Official UIU (Waiver First)</option>
+                                <option value="remaining">Split Remaining Balance (40/30/30)</option>
+                            </select>
+                        </label>
                         <label class="settings-field" for="settingInstallmentCount">
                             <span>Number of installments</span>
                             <input
@@ -1595,8 +1623,31 @@
 
                     <!-- Section 4: Installments -->
                     <section class="manual-section" id="manualSecInstallments">
-                        <h3 class="manual-section__title">📅 Installment Milestones &amp; Payment Tracker</h3>
-                        <p>UIU requires students to meet cumulative payment thresholds by official calendar deadlines:</p>
+                        <h3 class="manual-section__title">📅 Installment Milestones &amp; Calculation Modes</h3>
+                        <p>UIU requires students to meet cumulative payment thresholds by official calendar deadlines to avoid a <strong>&#2547; 500/- late fine</strong> per installment.</p>
+
+                        <div class="manual-scenario-grid">
+                            <div class="manual-card">
+                                <div class="manual-card__head">
+                                    <span class="manual-card__title">Mode 1: Official UIU (Waiver First)</span>
+                                    <span class="manual-card__badge">UCAM Standard</span>
+                                </div>
+                                <p>• Gross tuition &amp; term fees are split into nominal milestones (40% / 30% / 30%).</p>
+                                <p>• Your waiver or scholarship discount is <strong>deducted from the 1st installment first</strong>.</p>
+                                <p>• <em>Best for:</em> Students who want the smallest possible initial payment.</p>
+                            </div>
+
+                            <div class="manual-card">
+                                <div class="manual-card__head">
+                                    <span class="manual-card__title">Mode 2: Split Remaining Balance</span>
+                                    <span class="manual-card__badge">Balanced Spread</span>
+                                </div>
+                                <p>• Your <strong>net remaining balance</strong> (after registration deposit &amp; discounts) is divided into <strong>40% • 30% • 30%</strong> (or 25% &times; 4 for B.Pharm).</p>
+                                <p>• <strong>Strict Late-Fine Protection:</strong> Previous trimester dues are 100% placed into the 1st installment, and milestone payments are mathematically guaranteed to meet or exceed university cumulative requirements so you <strong>never face a late fine</strong>.</p>
+                                <p>• <em>Best for:</em> Families who want even, predictable installment payments.</p>
+                            </div>
+                        </div>
+
                         <div class="manual-card">
                             <p>• <strong>Deposit at Registration:</strong> As part of tuition fees, students typically pay &#2547; 20,000 at registration. The remaining balance is split across installments. (If no deposit is paid, the entire bill is split).</p>
                             <p>• <strong>1st Installment (40%):</strong> Payable by official 1st installment milestone deadline (Cumulative requirement = 40%).</p>

@@ -320,6 +320,7 @@ const DEFAULT_SETTINGS = Object.freeze({
   dueDateInst4: initialTrimProfile.dueDateInst4,
   refund100Date: initialTrimProfile.refund100Date,
   refund50Date: initialTrimProfile.refund50Date,
+  installmentMode: "official",
 });
 
 const THEME_STORAGE_KEY = "installment-theme";
@@ -391,6 +392,7 @@ const settingsInputs = {
   dueDateInst3: document.getElementById("settingDueDateInst3"),
   dueDateInst4: document.getElementById("settingDueDateInst4"),
   installmentCount: document.getElementById("settingInstallmentCount"),
+  installmentMode: document.getElementById("settingInstallmentMode"),
 };
 
 // Badges & Headers
@@ -539,6 +541,13 @@ let lastCalculationState = null;
 let toastTimeoutId = null;
 let actualPaidInstallments = {};
 
+// Installment Mode Switcher Elements
+const instModeSwitcher = document.getElementById("instModeSwitcher");
+const instModeOfficialBtn = document.getElementById("instModeOfficialBtn");
+const instModeRemainingBtn = document.getElementById("instModeRemainingBtn");
+const instModeNote = document.getElementById("instModeNote");
+let currentInstallmentMode = calculatorSettings?.installmentMode || "official";
+
 // Installment Ledger Bar
 const instLedgerBar = document.getElementById("instLedgerBar");
 const instPaidSoFar = document.getElementById("instPaidSoFar");
@@ -572,6 +581,7 @@ function cloneSettings(settings) {
     dueDateInst4: settings.dueDateInst4 || "",
     refund100Date: settings.refund100Date,
     refund50Date: settings.refund50Date,
+    installmentMode: settings.installmentMode || "official",
   };
 }
 
@@ -1462,11 +1472,15 @@ function renderCalculatedResults(values, animate = true) {
   // Remaining Balance after Paid at Registration deduction
   const remainingPayable = Math.max(0, netTotalPayable - paidRegistration);
 
-  // UIU Installment Schedule Calculation:
-  // 1. Gross Installment Base is total without discount minus deposit paid at registration.
+  // Non-splittable dues: Previous trimester dues & late registration fines cannot be deferred
+  // across installments under UIU regulations and must be 100% placed into the 1st installment.
+  const upfrontDues =
+    prevDue + (lateRegChecked ? calculatorSettings.lateRegistrationFine : 0);
+
+  // 1. Gross Installment Base is total without discount minus deposit paid at registration minus upfront dues
   const grossInstallmentBase = Math.max(
     0,
-    totalWithoutDiscount - paidRegistration,
+    totalWithoutDiscount - paidRegistration - upfrontDues,
   );
 
   // 2. Split into nominal milestone shares (e.g. 40%, 30%, 30% for trimester; 25%x4 for pharmacy)
@@ -1475,28 +1489,91 @@ function renderCalculatedResults(values, animate = true) {
     calculatorSettings.installmentRates,
   );
 
-  // 3. UIU Rule: Waiver/scholarship discount & drop refund credit cut from 1st installment first,
-  // with any excess cascading to the 2nd and 3rd installments.
+  // ── Mode A: Official UIU Rule (Waiver Deducted from 1st Installment First) ──
   const totalDeductions = roundToTwo(discountAmount + dropRefundCredit);
   let remDeduction = totalDeductions;
-  const scheduledInstallments = [];
+  const officialScheduledInstallments = [];
 
   for (let i = 0; i < nominalInstallments.length; i++) {
     const nom = nominalInstallments[i];
     const cut = Math.min(nom, remDeduction);
-    scheduledInstallments.push(roundToTwo(nom - cut));
+    let due = roundToTwo(nom - cut);
+    if (i === 0) {
+      due = roundToTwo(due + upfrontDues);
+    }
+    officialScheduledInstallments.push(due);
     remDeduction = roundToTwo(remDeduction - cut);
   }
 
-  // 4. Cumulative milestone targets (e.g. 40% target at Inst 1, 70% target at Inst 2, 100% target at Inst 3)
-  const cumulativeTargets = [];
-  let cum = 0;
-  for (let i = 0; i < scheduledInstallments.length; i++) {
-    cum = roundToTwo(cum + scheduledInstallments[i]);
-    cumulativeTargets.push(cum);
+  // Official Cumulative milestone targets (for late-fine safety benchmarks)
+  const officialCumulativeTargets = [];
+  let cumOfficial = 0;
+  for (let i = 0; i < officialScheduledInstallments.length; i++) {
+    cumOfficial = roundToTwo(cumOfficial + officialScheduledInstallments[i]);
+    officialCumulativeTargets.push(cumOfficial);
   }
 
-  // 5. Dynamic adjustment based on actual amounts paid by student
+  // ── Mode B: Split Remaining Balance (40% • 30% • 30% of Net Remaining) ──
+  // The net remaining balance after deducting registration deposit and upfront dues
+  const splittableRemaining = Math.max(
+    0,
+    netTotalPayable - paidRegistration - upfrontDues,
+  );
+
+  const rawRemainingSplit = splitInstallmentAmounts(
+    splittableRemaining,
+    calculatorSettings.installmentRates,
+  );
+
+  const remainingScheduledInstallments = [];
+  for (let i = 0; i < rawRemainingSplit.length; i++) {
+    let due = rawRemainingSplit[i];
+    if (i === 0) {
+      due = roundToTwo(due + upfrontDues);
+    }
+    remainingScheduledInstallments.push(roundToTwo(due));
+  }
+
+  // University Late-Fine Protection Guarantee:
+  // Ensure that cumulative target at each installment deadline i is AT LEAST equal to
+  // the official university required milestone (officialCumulativeTargets[i]).
+  // If due to custom inputs or edge cases it's less, clamp it up to guarantee no fine!
+  let cumRemaining = 0;
+  for (let i = 0; i < remainingScheduledInstallments.length; i++) {
+    cumRemaining = roundToTwo(cumRemaining + remainingScheduledInstallments[i]);
+    const reqMilestone = officialCumulativeTargets[i] || 0;
+    if (cumRemaining < reqMilestone) {
+      const shortfall = roundToTwo(reqMilestone - cumRemaining);
+      remainingScheduledInstallments[i] = roundToTwo(
+        remainingScheduledInstallments[i] + shortfall,
+      );
+      if (i + 1 < remainingScheduledInstallments.length) {
+        remainingScheduledInstallments[i + 1] = Math.max(
+          0,
+          roundToTwo(remainingScheduledInstallments[i + 1] - shortfall),
+        );
+      }
+      cumRemaining = reqMilestone;
+    }
+  }
+
+  const remainingCumulativeTargets = [];
+  let cumRemTarget = 0;
+  for (let i = 0; i < remainingScheduledInstallments.length; i++) {
+    cumRemTarget = roundToTwo(cumRemTarget + remainingScheduledInstallments[i]);
+    remainingCumulativeTargets.push(cumRemTarget);
+  }
+
+  // Determine active schedule based on currentInstallmentMode
+  const isRemainingMode = currentInstallmentMode === "remaining";
+  const scheduledInstallments = isRemainingMode
+    ? remainingScheduledInstallments
+    : officialScheduledInstallments;
+  const cumulativeTargets = isRemainingMode
+    ? remainingCumulativeTargets
+    : officialCumulativeTargets;
+
+  // Dynamic adjustment based on actual amounts paid by student
   const adjustedInstallments = [];
   let cumPaidBefore = 0;
   let hasAnyPriorPaid = false;
@@ -1528,6 +1605,11 @@ function renderCalculatedResults(values, animate = true) {
     scheduled: scheduledInstallments,
     adjusted: adjustedInstallments,
     cumulativeTargets,
+    officialScheduled: officialScheduledInstallments,
+    remainingScheduled: remainingScheduledInstallments,
+    officialCumulativeTargets,
+    remainingCumulativeTargets,
+    mode: currentInstallmentMode,
   };
 
   // Save full calculation state for Voucher / WhatsApp export
@@ -1566,6 +1648,7 @@ function renderCalculatedResults(values, animate = true) {
     scheduledInstallments,
     adjustedInstallments,
     installments: adjustedInstallments,
+    installmentMode: currentInstallmentMode,
     scheduleData,
   };
 
@@ -1658,6 +1741,35 @@ function renderCalculatedResults(values, animate = true) {
 
   // Render Installment Rows
   renderInstallmentRows(scheduleData);
+
+  // Update Installment Mode Switcher UI & Late-Fine Guidance
+  if (instModeOfficialBtn && instModeRemainingBtn) {
+    const isRem = currentInstallmentMode === "remaining";
+    instModeOfficialBtn.classList.toggle("is-active", !isRem);
+    instModeRemainingBtn.classList.toggle("is-active", isRem);
+
+    const isPharm = calculatorSettings.program === "pharmacy";
+    instModeRemainingBtn.textContent = isPharm
+      ? "Split Remaining (25% × 4)"
+      : "Split Remaining (40/30/30)";
+
+    if (instModeNote) {
+      if (isRem) {
+        const ratesText = calculatorSettings.installmentRates
+          .map((r) => `${formatPercent(r * 100)}%`)
+          .join(" • ");
+        instModeNote.innerHTML = `
+          <span class="inst-mode-note-badge">&#10003; Late-Fine Safe</span>
+          <span>Splits net remaining payable (<strong>${formatBDT(remainingPayable)}</strong>) into ${ratesText}. Guaranteed to satisfy UIU cumulative requirements so you never face a late fine.</span>
+        `;
+      } else {
+        instModeNote.innerHTML = `
+          <span class="inst-mode-note-badge">UCAM Standard</span>
+          <span>Official UIU Rule: Waiver &amp; drop refund discounts are credited against the 1st installment first.</span>
+        `;
+      }
+    }
+  }
 
   // Set Applied Discount Badge
   setAppliedDiscountBadge(
@@ -1948,6 +2060,13 @@ function loadStateFromURL() {
     fields.extraCustom.value = params.get("extra");
     hasParam = true;
   }
+  if (params.has("imode")) {
+    const imode = params.get("imode");
+    if (imode === "remaining" || imode === "official") {
+      currentInstallmentMode = imode;
+      hasParam = true;
+    }
+  }
   if (params.has("drop") && dropCredits) {
     dropCredits.value = params.get("drop");
     hasParam = true;
@@ -2000,6 +2119,9 @@ function syncStateToURL() {
   if (extraCheckboxes.lateReg?.checked) params.set("lreg", "1");
   if (extraCheckboxes.lateInst?.checked) params.set("linst", "1");
   if (extra && Number(extra) > 0) params.set("extra", extra);
+  if (currentInstallmentMode === "remaining") {
+    params.set("imode", "remaining");
+  }
 
   if (dropCredits && Number(dropCredits.value) > 0) {
     params.set("drop", dropCredits.value);
@@ -2037,6 +2159,7 @@ function resetCalculatorForm() {
   fields.extraCustom.value = "";
 
   actualPaidInstallments = {};
+  currentInstallmentMode = calculatorSettings.installmentMode || "official";
   if (dropCredits) dropCredits.value = "0";
   if (dropWindow) dropWindow.value = "auto";
   if (applyDropRefund) applyDropRefund.checked = true;
@@ -2065,6 +2188,27 @@ function resetCalculatorForm() {
 
 if (applyDropRefund) {
   applyDropRefund.addEventListener("change", () => calculateAndRender());
+}
+
+// ─── Installment Calculation Mode Listeners ──────────────────────────────────
+if (instModeOfficialBtn) {
+  instModeOfficialBtn.addEventListener("click", () => {
+    if (currentInstallmentMode !== "official") {
+      currentInstallmentMode = "official";
+      calculateAndRender({ animate: false });
+      syncStateToURL();
+    }
+  });
+}
+
+if (instModeRemainingBtn) {
+  instModeRemainingBtn.addEventListener("click", () => {
+    if (currentInstallmentMode !== "remaining") {
+      currentInstallmentMode = "remaining";
+      calculateAndRender({ animate: false });
+      syncStateToURL();
+    }
+  });
 }
 
 // ─── WhatsApp / Messenger Breakdown Formatting ───────────────────────────────
@@ -2128,7 +2272,11 @@ function generateWhatsAppSummary() {
     text += `*Remaining Balance:* ${formatBDT(s.remainingPayable)}\n`;
   }
 
-  text += `\n*Installment Schedule (UIU Calendar Milestones):*\n`;
+  const modeTitle =
+    s.installmentMode === "remaining"
+      ? `Split Remaining Balance (${isPharm ? "25%×4" : "40/30/30"})`
+      : "Official UIU Policy (Waiver First)";
+  text += `\n*Installment Schedule [${modeTitle}]:*\n`;
   const ordinals = ["1st", "2nd", "3rd", "4th", "5th", "6th"];
   const adjusted = s.adjustedInstallments || s.installments || [];
   calculatorSettings.installmentRates.forEach((rate, i) => {
@@ -2781,6 +2929,8 @@ function populateSettingsForm(settings) {
     settingsInputs.dueDateInst3.value = settings.dueDateInst3 || "";
   if (settingsInputs.dueDateInst4)
     settingsInputs.dueDateInst4.value = settings.dueDateInst4 || "";
+  if (settingsInputs.installmentMode)
+    settingsInputs.installmentMode.value = settings.installmentMode || "official";
 
   if (settingsInputs.installmentCount) {
     settingsInputs.installmentCount.value = String(
@@ -2856,6 +3006,9 @@ function validateSettingsCandidate(candidate) {
     candidate.lateRegistrationFine === undefined
       ? DEFAULT_SETTINGS.lateRegistrationFine
       : Number(candidate.lateRegistrationFine);
+
+  const installmentMode =
+    candidate.installmentMode === "remaining" ? "remaining" : "official";
 
   const trimesterTitle =
     typeof candidate.trimesterTitle === "string" &&
@@ -2966,6 +3119,7 @@ function validateSettingsCandidate(candidate) {
     dueDateInst2,
     dueDateInst3,
     dueDateInst4,
+    installmentMode,
   };
 }
 
@@ -3019,6 +3173,10 @@ function applyCalculatorSettings(settings, options = {}) {
   const { persist = true, animate = true } = options;
   calculatorSettings = cloneSettings(settings);
 
+  if (settings.installmentMode) {
+    currentInstallmentMode = settings.installmentMode;
+  }
+
   if (persist) {
     persistSettings(calculatorSettings);
   }
@@ -3057,6 +3215,10 @@ function collectSettingsFromForm() {
   const lateRegistrationFine = Number(
     settingsInputs.lateRegistrationFine.value,
   );
+  const installmentMode = settingsInputs.installmentMode
+    ? settingsInputs.installmentMode.value
+    : "official";
+
   const trimesterTitle = settingsInputs.trimesterTitle.value.trim();
   const refund100Date = settingsInputs.refund100Date.value;
   const refund50Date = settingsInputs.refund50Date.value;
@@ -3180,6 +3342,7 @@ function collectSettingsFromForm() {
     dueDateInst3,
     dueDateInst4,
     installmentRates: normalizedInstallmentRates,
+    installmentMode,
   });
 
   if (!normalized) {
